@@ -7,21 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> | Mi Negocio</title>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
-    <!-- Estilos Generales -->
     <link rel="stylesheet" href="/css/style.css">
     
-    <!-- Estilos Específicos de la Página de Inicio -->
     <% if (locals.active_link && active_link === 'inicio') { %>
         <link rel="stylesheet" href="/css/tablero.css">
     <% } %>
-    <!-- Estilos Específicos para Registro y Reportes -->
     <% if (locals.active_link && (active_link === 'registro' || active_link === 'reportes')) { %>
-        <link rel="stylesheet" href="/css/RegRep.css">
+        <link rel="stylesheet" href="/css/regrep.css">
     <% } %>
 </head>
 <% const sidebarPages = ['inicio', 'registro', 'reportes', 'settings']; %>
@@ -32,7 +27,6 @@
 %> <%= (locals.active_link && active_link === 'registro') ? 'registro-page-bg' : ''
 %> <%= (locals.active_link && active_link === 'reportes') ? 'reportes-page-bg' : '' %>">
 
-<!-- MENÚ LATERAL PARA ESCRITORIO -->
 <nav class="side-nav">
     <div>
         <a class="navbar-brand-side" href="/inicio">
@@ -63,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Pie del menú lateral con información y botón de opciones -->
     <div class="side-nav-footer">
         <div class="settings-menu">
             <div class="settings-submenu" id="settings-submenu">
@@ -90,7 +83,6 @@
                 <span>Opciones</span>
             </button>
         </div>
-        <!-- MODIFICADO: Muestra el username y el cuit -->
         <div class="side-nav-info">
              <small>Usuario</small>
              <strong class="user-name"><%= username %></strong>
@@ -101,7 +93,6 @@
     </div>
 </nav>
 
-<!-- BARRA DE NAVEGACIÓN SUPERIOR (PARA MÓVIL) -->
 <nav class="navbar fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="/inicio" style="color: #595959;">
