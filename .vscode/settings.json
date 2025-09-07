@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.ejs": "html"
+  },
+  "emmet.includeLanguages": {
+    "ejs": "html"
+  },
+  "git.ignoreLimitWarning": true,
+
+  "html.validate.scripts": false,
+  "editor.selectionHighlight": false,
+  "editor.selectionHighlightMaxLength": 300
+}

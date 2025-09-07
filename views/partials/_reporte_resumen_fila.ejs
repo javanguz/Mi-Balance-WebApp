@@ -1,0 +1,31 @@
+<!-- partials/_reporte_resumen_fila.ejs -->
+
+<% items.forEach(item => { %>
+    <tr class="level-<%= nivel %>">
+        <%# Columna de Concepto (siempre presente) %>
+        <td>
+            <span class="concept-label"><%= item.clave %></span>
+        </td>
+
+        <%# Columnas de Importes (dependen del tipo de reporte) %>
+        <% if (tipo === 'todos') { %>
+            <td class="text-end text-nowrap amount-cell"><%- formatReportBalancePlain(item.ingresos) %></td>
+            <td class="text-end text-nowrap amount-cell"><%- formatReportBalancePlain(-item.egresos) %></td>
+            <td class="text-end text-nowrap amount-cell"><%- formatReportBalancePlain(item.resultado) %></td>
+        <% } else { %>
+            <td class="text-end text-nowrap amount-cell">
+            <%- formatSummaryCurrency(tipo === 'ingreso' ? item.ingresos : -item.egresos) %>            </td>
+        <% } %>
+    </tr>
+
+    <%# Llamada recursiva si hay subgrupos %>
+    <% if (item.subgrupos && item.subgrupos.length > 0) { %>
+        <%- include('_reporte_resumen_fila', {
+            items: item.subgrupos,
+            nivel: nivel + 1,
+            tipo: tipo,
+            formatReportCurrencySimple: formatReportCurrencySimple,
+            formatReportBalancePlain: formatReportBalancePlain
+        }) %>
+    <% } %>
+<% }) %>

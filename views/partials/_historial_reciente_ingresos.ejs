@@ -1,0 +1,65 @@
+<!-- partials/_historial_reciente_ingresos.ejs -->
+
+<% if (clienteSeleccionado) { %>
+    <div class="card" style="width: fit-content;">
+        <div class="card-body">
+            <h6 class="card-title text-muted mb-3" style="font-size: 1.10rem;">Historial reciente de
+                 <span class="nombre-cliente-destacado text-ingreso fw-bold"><%= clienteSeleccionado.nombre %></span>
+            </h6>
+
+            <% if (movimientos && movimientos.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table table-flush border-top" style="width: auto;">
+                         <tbody>
+                            <% 
+                            const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+                            movimientos.forEach((mov) => {
+                                const fecha = new Date(mov.fecha + 'T00:00:00');
+                                const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${meses[fecha.getMonth()]}`;
+                                
+                                // La clase del badge ahora respeta estrictamente el signo del importe.
+                                // Positivo (>= 0) usa 'ingreso' (verde).
+                                // Negativo (< 0) usa 'egreso' (rojo).
+                                const badgeClass = mov.monto >= 0 ? 'ingreso' : 'egreso';
+                            %>
+                            <tr style="vertical-align: middle;">
+                                <%#-- FECHA --%>
+                                <td class="text-center text-nowrap" style="font-size: 0.8rem; width: 60px;">
+                                    <span class="text-muted"><%= fechaFormateada %></span>
+                                </td>
+                                <%#-- CAT & MOD --%>
+                                <td class="px-3" style="font-size: 0.9rem; width: 1%; white-space: nowrap;">
+                                    <div class="fw-semibold text-muted small"><%= mov.categoria_nombre %></div>
+                                    <div class="text-muted small"><%= mov.modalidad %></div>
+                                </td>
+                                <%#-- COMENT --%>
+                                <td class="text-center" style="width: 40px;">
+                                    <% if (mov.comentarios) { %>
+                                        <i class="fa-solid fa-comment-dots text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="<%= mov.comentarios %>"></i>
+                                    <% } %>
+                                </td>
+                                
+                                <%#-- IMPORTE --%>
+                                <td class="text-end" style="white-space: nowrap;">
+                                    <span class="importe-badge <%= badgeClass %> text-nowrap">
+                                        <%# Se usa formatIncome para que el signo (+/-) coincida directamente con el del importe %>
+                                        <%= formatIncome(mov.monto) %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <p class="text-center text-muted mt-3">Este cliente no tiene movimientos registrados.</p>
+            <% } %>
+
+            <div class="text-end mt-1">
+                <a href="/registro?busqueda=<%= clienteSeleccionado.id %>" class="btn btn-link" title="Ver todos los movimientos de este cliente en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver todo el historial
+                </a>
+            </div>
+        </div>
+    </div>
+<% } %>

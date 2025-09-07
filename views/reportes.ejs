@@ -1,0 +1,336 @@
+<%- include('layout/_header', { title: title }) %>
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+<h1 class="mt-4 mb-4 page-title">
+    <span class="title-reportes badge">
+    <i class="fa-solid fa-file-lines fa-fw me-4"></i>Reportes e Informes
+    </span>
+</h1>
+
+<% if (!isLicensed) { %>
+    <div class="alert alert-warning text-center">
+        <i class="fa-solid fa-lock me-2"></i> Para generar o exportar reportes, se requiere una licencia activa.
+    </div>
+<% } %>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/reportes/generar" method="POST" id="form-reportes">
+            <fieldset <%= !isLicensed ? 'disabled' : '' %>>
+                <div class="row g-3 mb-4 align-items-end">
+                    <div class="col-lg-6">
+                        <label for="daterange" class="form-label fw-bold">Período del reporte</label>
+                        <div class="input-group">
+                            <input type="text" id="daterange" class="form-control" autocomplete="off" placeholder="Seleccione un rango de fechas">
+                            <input type="hidden" name="fecha_desde" id="fecha_desde" value="<%= query.fecha_desde || '' %>">
+                            <input type="hidden" name="fecha_hasta" id="fecha_hasta" value="<%= query.fecha_hasta || '' %>">
+                        </div>
+                    </div>
+                     <div class="col-lg-6">
+                        <label class="form-label fw-bold">Tipos de movimientos a incluir</label>
+                        <input 
+                        type="hidden" name="tipo" id="tipo" value="<%= query.tipo || 'todos' %>">
+                        <div class="btn-group btn-group-toggle-colors btn-group-reportes w-100" role="group">
+                            <button type="button" class="btn btn-tertiary btn-todos tipo-btn w-100 <%= (!query.tipo || query.tipo === 'todos') ? 'active' : '' %>" data-value="todos">Todos</button>
+                            <button type="button" class="btn btn-tertiary btn-ingreso tipo-btn w-100 <%= query.tipo === 'ingreso' ? 'active' : '' %>" data-value="ingreso">Ingresos</button>
+                            <button type="button" class="btn btn-tertiary btn-egreso tipo-btn w-100 <%= query.tipo === 'egreso' ? 'active' : '' %>" data-value="egreso">Egresos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                     <h6 class="mb-2 me-3">Filtros Opcionales</h6>
+                     <hr class="flex-grow-1">
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                         <label for="categoria_id" class="form-label">Por Categoría</label>
+                        <select name="categoria_id" id="categoria_id" multiple>
+                            <% const groupedCategories = categorias.reduce((acc, cat) => { acc[cat.tipo] = [...(acc[cat.tipo] || []), cat]; return acc; }, {}); %>
+                             <% if (groupedCategories.cliente) { %>
+                                <optgroup label="Ingresos / Clientes">
+                                    <% groupedCategories.cliente.forEach(cat => { %>
+                                         <option value="<%= cat.id %>" <%= (query.categoria_id && query.categoria_id.includes(String(cat.id))) ? 'selected' : '' %>><%= cat.nombre %></option>
+                                    <% }) %>
+                                </optgroup>
+                            <% } %>
+                            <% if (groupedCategories.proveedor) { %>
+                                <optgroup label="Egresos / Proveedores">
+                                    <% groupedCategories.proveedor.forEach(cat => { %>
+                                        <option value="<%= cat.id %>" <%= (query.categoria_id && query.categoria_id.includes(String(cat.id))) ? 'selected' : '' %>><%= cat.nombre %></option>
+                                    <% }) %>
+                                </optgroup>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="modalidad" class="form-label">Por Modalidad</label>
+                        <select name="modalidad" id="modalidad" multiple>
+                            <% modalidades.forEach(mod => { %>
+                                 <option value="<%= mod.modalidad %>" <%= (query.modalidad && query.modalidad.includes(mod.modalidad)) ? 'selected' : '' %>><%= mod.modalidad %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="clientes" class="form-label">Por Clientes</label>
+                        <select name="clientes" id="clientes" multiple>
+                             <% clientes.forEach(cli => { %>
+                                <option value="<%= cli.id %>" <%= (query.clientes && query.clientes.includes(String(cli.id))) ? 'selected' : '' %>><%= cli.nombre %></option>
+                            <% }) %>
+                        </select>
+                     </div>
+                    <div class="col-md-6">
+                        <label for="proveedores" class="form-label">Por Proveedores</label>
+                        <select name="proveedores" id="proveedores" multiple>
+                             <% proveedores.forEach(prov => { %>
+                                <option value="<%= prov.id %>" <%= (query.proveedores && query.proveedores.includes(String(prov.id))) ? 'selected' : '' %>><%= prov.nombre %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="resumen-options-container">
+                    <div class="d-flex align-items-center">
+                        <h6 class="me-3">Opciones de Resumen</h6>
+                        <hr class="flex-grow-1">
+                    </div>
+                     <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="resumen_nivel_1" class="form-label">1er Nivel de Esquema</label>
+                            <select name="resumen_nivel_1" id="resumen_nivel_1" class="form-select"></select>
+                        </div>
+                        <div class="col-md-4" id="resumen_nivel_2_container" style="display: none;">
+                             <label for="resumen_nivel_2" class="form-label">2do Nivel de Esquema</label>
+                            <select name="resumen_nivel_2" id="resumen_nivel_2" class="form-select"></select>
+                        </div>
+                        <div class="col-md-4" id="resumen_nivel_3_container" style="display: none;">
+                            <label for="resumen_nivel_3" class="form-label">3er Nivel de Esquema</label>
+                            <select name="resumen_nivel_3" id="resumen_nivel_3" class="form-select"></select>
+                        </div>
+                     </div>
+                </div>
+
+                <div id="opciones-visualizacion-container">
+                    <div class="d-flex align-items-center">
+                        <h6 class="mt-2 mb-2 me-3">Opciones de Visualización</h6>
+                        <hr class="flex-grow-1">
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="mostrar_comentarios" name="mostrar_comentarios" value="true" <%= query.mostrar_comentarios ? 'checked' : '' %>>
+                                <label class="form-check-label" for="mostrar_comentarios">Mostrar comentarios en el reporte</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="invertir_orden" name="invertir_orden" value="true" <%= query.invertir_orden ? 'checked' : '' %>>
+                                <label class="form-check-label" for="invertir_orden">Invertir orden (mostrar más antiguos primero)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4 align-items-center">
+                    <div class="col">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="btn-generar-reporte">Generar Reporte</button>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" id="btn-restablecer-filtros" class="btn btn-link" disabled>
+                            <i class="fa-solid fa-undo me-1"></i>Restablecer
+                        </button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<% if (resultados) { %>
+<div class="card mt-4 report-results-card" id="reporte-generado"></div>
+    <div class="card-body">
+      <div class="report-container">
+            <div class="report-header">
+                <div style="max-width: 600px;">
+                    <h5 class="report-title">Detalles del Informe</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Período:</strong> <%= new Date(resultados.periodo.desde + 'T00:00:00').toLocaleDateString('es-AR') %> al <%= new Date(resultados.periodo.hasta + 'T00:00:00').toLocaleDateString('es-AR') %></li>
+                        <% if (resultados.tipo !== 'egreso') { %>
+                            <li><strong>Total Ingresos:</strong> <%- formatReportBalance(resultados.totalIngresos) %></li>
+                        <% } %>
+                        <% if (resultados.tipo !== 'ingreso') { %>
+                            <li><strong>Total Egresos:</strong> <%- formatReportBalance(-resultados.totalEgresos) %></li>
+                        <% } %>
+                        <% if (resultados.tipo === 'todos') { %>
+                            <li><strong>Resultado del Período:</strong> <%- formatReportBalance(resultados.resultado) %></li>
+                        <% } %>
+                        <% if (Object.keys(resultados.filtrosAplicados).length > 0) { %>
+                            <li>
+                                <strong>Filtros Aplicados:</strong>
+                                <div class="mt-1">
+                                    <% for (const [key, value] of Object.entries(resultados.filtrosAplicados)) { %>
+                                        <div class="mb-1">
+                                            <span class="badge bg-secondary fw-normal filter-badge">
+                                                <strong class="me-1"><%= key.charAt(0).toUpperCase() + key.slice(1) %>:</strong><%= value %>
+                                            </span>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </li>
+                        <% } %>
+                    </ul>
+                </div>
+
+                <div class="text-end mt-3">
+                    <% if (isLicensed) { %>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-download me-2"></i>Exportar
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" data-action="pdf-detalle" data-bs-toggle="modal" data-bs-target="#modal-confirmar-accion"><i class="fa-solid fa-file-pdf me-2"></i>Exportar a PDF</a></li>
+                                <li><a class="dropdown-item" href="#" data-action="excel-detalle" data-bs-toggle="modal" data-bs-target="#modal-confirmar-accion"><i class="fa-solid fa-file-excel me-2"></i>Exportar a Excel</a></li>
+                            </ul>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <% if (resultadosResumen) { %>
+                <%
+                    const isSingleType = query.tipo === 'ingreso' || query.tipo === 'egreso';
+                    const isAllTypes = query.tipo === 'todos';
+                    const summaryLevels = [query.resumen_nivel_1, query.resumen_nivel_2, query.resumen_nivel_3].filter(Boolean);
+                    const levelCount = summaryLevels.length;
+                    let summaryTableClass = 'summary-table';
+                    if (isSingleType) {
+                        summaryTableClass += ' summary-table-single';
+                    } else if (isAllTypes) {
+                        summaryTableClass += ' summary-table-all';
+                    }
+                    if (levelCount === 1) summaryTableClass += ' has-one-level';
+                    if (levelCount === 2) summaryTableClass += ' has-two-levels';
+                    if (levelCount === 3) summaryTableClass += ' has-three-levels';
+                %>
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm report-table <%= summaryTableClass %>" style="table-layout: fixed;">
+                        <colgroup>
+                            <% if (isAllTypes) { %>
+                                <col class="concept-col"><col class="amount-col-narrow"><col class="amount-col-narrow"><col class="amount-col-narrow">
+                            <% } else { %>
+                                <col class="concept-col"><col class="amount-col-wide">
+                            <% } %>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <% if (isAllTypes) { %>
+                                    <th class="text-end">Ingresos</th>
+                                    <th class="text-end">Egresos</th>
+                                    <th class="text-end">Resultado</th>
+                                <% } else { %>
+                                    <th class="text-end">Importe</th>
+                                <% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (resultadosResumen.length === 0) { %>
+                                <tr>
+                                    <td colspan="<%= isAllTypes ? 4 : 2 %>" class="text-center text-muted py-4">No se encontraron movimientos para resumir.</td>
+                                </tr>
+                            <% } else { %>
+                                <%- include('partials/_reporte_resumen_fila', { items: resultadosResumen, nivel: 1, tipo: query.tipo, formatReportCurrencySimple: formatReportCurrencySimple, formatReportBalancePlain: formatReportBalancePlain }) %>
+                            <% } %>
+                        </tbody>
+                        <tfoot>
+                            <tr class="level-1">
+                                <td class="fw-bold">Total del Período:</td>
+                                <% if (isAllTypes) { %>
+                                    <td class="text-end fw-bold text-nowrap amount-cell"><%- formatReportBalancePlain(resultados.totalIngresos) %></td>
+                                    <td class="text-end fw-bold text-nowrap amount-cell"><%- formatReportBalancePlain(-resultados.totalEgresos) %></td>
+                                    <td class="text-end fw-bold text-nowrap amount-cell"><%- formatReportBalancePlain(resultados.resultado) %></td>
+                                <% } else { %>
+                                    <td class="text-end fw-bold text-nowrap amount-cell"><%- formatSummaryCurrency(query.tipo === 'ingreso' ? resultados.totalIngresos : -resultados.totalEgresos) %></td>
+                                <% } %>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm report-table report-table-detailed">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th><th>Entidad</th><th>Categoría</th><th>Modalidad</th><th class="text-end">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (resultados.movimientos.length === 0) { %>
+                                 <tr><td colspan="5" class="text-center text-muted py-4">No se encontraron movimientos.</td></tr>
+                            <% } else { %>
+                                <% resultados.movimientos.forEach(mov => { %>
+                                    <tr>
+                                        <td><%= new Date(mov.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) %></td>
+                                        <td><%= mov.entidad_nombre %></td>
+                                        <td><%= mov.categoria_nombre %></td>
+                                        <td><%= mov.modalidad %></td>
+                                        <td class="text-end text-nowrap"><%- formatReportCurrency(mov.monto, mov.tipo) %></td>
+                                    </tr>
+                                    <% if (query.mostrar_comentarios && mov.descripcion) { %>
+                                    <tr class="comment-row">
+                                        <td colspan="5" class="text-muted fst-italic pt-0 pb-2 ps-3">↳ <%= mov.descripcion %></td>
+                                    </tr>
+                                    <% } %>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                        <tfoot>
+                           <tr>
+                                <td colspan="4" class="text-end fw-bold">Total del Período:</td>
+                                <td class="text-end fw-bold text-nowrap"><%- formatReportBalance(resultados.resultado) %></td>
+                           </tr>
+                         </tfoot>
+                    </table>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+<% } %>
+
+
+<button id="btn-volver-arriba-reporte" class="btn btn-scroll-top d-none">
+    <i class="fa-solid fa-angles-up"></i>
+</button>
+
+<div class="modal fade" id="modal-confirmar-accion" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmar-accion-label">Confirmar Acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmar-accion-body">¿Está seguro que desea continuar?</p>
+             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-confirmar-accion-final">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% pageScripts = `
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script src="/js/reportes.client.js"></script>
+` %>
+<%- include('layout/_footer') %>

@@ -1,0 +1,186 @@
+<!-- views/database_management.ejs -->
+
+<%- include('layout/_header') %>
+
+<style>
+    .db-management-container {
+        max-width: 70%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    @media (max-width: 992px) {
+        .db-management-container {
+            max-width: 100%;
+        }
+    }
+</style>
+
+<div class="db-management-container" data-is-licensed="<%= isLicensed %>">
+    <h1 class="mb-4">Gestionar Base de Datos</h1>
+
+    <% if (!isLicensed) { %>
+        <div class="alert alert-warning text-center">
+            <i class="fa-solid fa-lock me-2"></i> Se requiere una licencia activa para gestionar la base de datos.
+        </div>
+    <% } %>
+
+    <div class="accordion" id="databaseManagementAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingLocal">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLocal">
+                    <i class="fa-solid fa-floppy-disk me-2"></i> Respaldos Locales
+                </button>
+            </h2>
+            <div id="collapseLocal" class="accordion-collapse collapse show" data-bs-parent="#databaseManagementAccordion">
+                <div class="accordion-body">
+                    <form id="local-settings-form">
+                        <fieldset <%= !isLicensed ? 'disabled' : '' %>>
+                            <div class="mb-3">
+                                <label for="backupPath" class="form-label fw-bold">Ruta de la Carpeta de Respaldos</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-folder-open"></i></span>
+                                    <input type="text" name="backupPath" id="backupPath" class="form-control" value="<%= localSettings.path %>" required>
+                                    <button class="btn btn-link" type="button" id="btn-verify-path">Verificar</button>
+                                </div>
+                                <div id="path-test-result" class="form-text mt-2"></div>
+                            </div>
+
+                            <div class="card p-3 mb-4">
+                                <fieldset id="backup-options-fieldset">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Modo de Respaldo</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input setting-input" type="radio" name="mode" id="mode-manual-local" value="manual" <%= localSettings.mode === 'manual' ? 'checked' : '' %>>
+                                            <label class="form-check-label" for="mode-manual-local">Manual</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input setting-input" type="radio" name="mode" id="mode-startup-local" value="startup" <%= localSettings.mode === 'startup' ? 'checked' : '' %>>
+                                            <label class="form-check-label" for="mode-startup-local">Al iniciar el programa</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input setting-input" type="radio" name="mode" id="mode-daily-local" value="daily" <%= localSettings.mode === 'daily' ? 'checked' : '' %>>
+                                            <label class="form-check-label" for="mode-daily-local">Todos los días</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input setting-input" type="radio" name="mode" id="mode-weekdays-local" value="weekdays" <%= localSettings.mode === 'weekdays' ? 'checked' : '' %>>
+                                            <label class="form-check-label" for="mode-weekdays-local">Lunes a Viernes</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- INICIO DE LA CORRECCIÓN: Se agrupan los campos en una fila -->
+                                    <div id="automatic-settings-local" class="row <%= localSettings.mode !== 'manual' ? '' : 'd-none' %>">
+                                        <div id="automatic-time-settings" class="col-md-6 mb-3 <%= ['daily', 'weekdays'].includes(localSettings.mode) ? '' : 'd-none' %>">
+                                            <label for="scheduleTimeLocal" class="form-label">Hora de respaldo (formato 24hs)</label>
+                                            <input type="time" name="scheduleTime" id="scheduleTimeLocal" class="form-control setting-input" value="<%= localSettings.scheduleTime || '12:00' %>">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="retentionCountLocal" class="form-label">Copias a conservar</label>
+                                            <input type="number" name="retentionCount" id="retentionCountLocal" class="form-control setting-input" value="<%= localSettings.retentionCount %>" min="1">
+                                        </div>
+                                    </div>
+                                    <!-- FIN DE LA CORRECCIÓN -->
+
+                                </fieldset>
+                            </div>
+                             <div class="d-grid">
+                                <button type="button" class="btn btn-primary btn-lg" id="btn-save-db-settings" disabled>
+                                    <i class="fa-solid fa-check me-2"></i>Guardar Configuración
+                                </button>
+                            </div>
+                        </fieldset>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <form action="/settings/database/local/backup" method="POST">
+                         <div class="d-grid">
+                            <button type="submit" class="btn btn-success" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
+                                <i class="fa-solid fa-save me-2"></i>Crear Respaldo Local Ahora
+                            </button>
+                        </div>
+                    </form>
+
+                    <h5 class="mt-4">Respaldos Locales Disponibles</h5>
+                    <% if (localBackups.length > 0) { %>
+                        <ul class="list-group" id="backup-list">
+                          <% localBackups.forEach(file => { %>
+                            <% const safeFileId = `backup-item-${file.name.replace(/[^\w-]/g, '-')}` %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap" id="<%= safeFileId %>">
+                                <div>
+                                    <strong class="d-block"><%= file.name %></strong>
+                                    <small class="text-muted"><%= new Date(file.createdTime).toLocaleString('es-AR') %></small>
+                                </div>
+                                <div class="mt-2 mt-md-0">
+                                    <form action="/settings/database/local/restore" method="POST" class="d-inline" id="form-restore-local-<%= safeFileId %>">
+                                        <input type="hidden" name="backupFilePath" value="<%= file.path %>">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-restore-local-<%= safeFileId %>" <%= !isLicensed ? 'disabled' : '' %>>Restaurar</button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-danger btn-sm ms-2 btn-delete-backup" data-backup-path="<%= file.path %>" data-backup-id="<%= safeFileId %>" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion-respaldo" <%= !isLicensed ? 'disabled' : '' %>>Eliminar</button>
+                                </div>
+                            </li>
+                          <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p class="text-muted">No se encontraron respaldos en la carpeta local especificada.</p>
+                    <% } %>
+               </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingDanger">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDanger">
+                    <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Zona de Alto Riesgo
+                </button>
+            </h2>
+            <div id="collapseDanger" class="accordion-collapse collapse" data-bs-parent="#databaseManagementAccordion">
+                <div class="accordion-body">
+                    <h5 class="card-title text-danger">Resetear Aplicación</h5>
+                    <p>Esta opción elimina permanentemente todos los datos locales. <strong>No afecta tus respaldos.</strong></p>
+                    <a href="/settings/database/verify" class="btn btn-danger <%= !isLicensed ? 'disabled' : '' %>">Resetear Base de Datos Local</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-restauracion" tabindex="-1" aria-labelledby="modalLabelRestauracion" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelRestauracion">Confirmar Restauración</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Se reemplazará la base de datos actual con la copia de seguridad seleccionada. <strong>Esta acción no se puede deshacer.</strong></p>
+                <p>¿Está seguro que desea continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-restauracion-final">Sí, Restaurar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-eliminacion-respaldo" tabindex="-1" aria-labelledby="modalLabelEliminarRespaldo" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelEliminarRespaldo">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Está a punto de eliminar permanentemente este archivo de respaldo. <strong>Esta acción no se puede deshacer.</strong></p>
+                <p>¿Está seguro que desea continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminacion-respaldo-final">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% pageScripts = '<script src="/js/database_management.client.js"></script>' %>
+<%- include('layout/_footer') %>
+

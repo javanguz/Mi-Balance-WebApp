@@ -1,0 +1,473 @@
+/* --- Variables y Estilos Exclusivos para la Pantalla de Inicio --- */
+:root {
+    --bg-tablero: #f5f5f5;
+}
+
+body.tablero-page .main-container {
+    max-width: 1200px;
+}
+
+.date-display { 
+    font-size: 0.9rem; 
+    color: var(--on-surface-variant-color);
+}
+
+.top-date-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 22px; /* Evita que el diseño salte antes de que cargue el JS */
+}
+
+.time-placeholder {
+    flex-basis: 100px; /* Asegura un espacio fijo para la hora */
+    flex-shrink: 0;
+}
+
+
+/* --- Nuevo Selector de Período Dinámico --- */
+.dynamic-period-selector-container {
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.granularity-selector {
+    display: flex;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 50px;
+    padding: 0.3rem;
+    gap: 0.5rem; /* Separación entre botones */
+    max-width: max-content;
+    margin: 0 auto;
+}
+
+.granularity-selector .btn {
+    border-radius: 50px;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    background-color: transparent;
+    color: var(--on-surface-variant-color);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    flex: 1; /* Ocupa el mismo espacio */
+    text-align: center; /* Centra el texto */
+    min-width: 120px; /* Ancho mínimo para consistencia */
+}
+
+
+.granularity-selector .btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.period-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.nav-arrow {
+    color: var(--on-surface-variant-color);
+    font-size: 1.2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    z-index: 3;
+}
+
+.nav-arrow:hover {
+    background-color: var(--bg-color);
+    color: var(--on-surface-color);
+}
+
+.nav-arrow.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: default;
+}
+
+.period-ribbon-wrapper {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+}
+
+.period-ribbon-wrapper::before,
+.period-ribbon-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.period-ribbon-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, var(--surface-color), transparent);
+}
+
+.period-ribbon-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, var(--surface-color), transparent);
+}
+
+.period-ribbon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ribbon-item {
+    border: none;
+    background-color: transparent;
+    color: var(--on-surface-variant-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem; /* Padding ajustado para dos líneas */
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2; /* Mejora el espaciado entre líneas */
+    min-height: 52px; /* Garantiza que todos los botones tengan la misma altura, evitando saltos en el layout */
+    min-width: 120px;
+}
+
+.ribbon-item-label {
+    font-size: 1.1rem; /* Mantiene el tamaño original */
+}
+
+.ribbon-item-sublabel {
+    font-size: 0.7rem; /* Texto más pequeño */
+    font-weight: 500;
+    opacity: 0.8;
+    margin-top: 2px;
+    text-transform: none;
+}
+
+
+.ribbon-item.active {
+    background-color: var(--primary-container-color);
+    color: var(--primary-color);
+    font-weight: 700;
+    transform: scale(1.05);
+}
+
+.ribbon-item:not(.active):hover {
+    background-color: var(--bg-color);
+}
+
+.period-ribbon .ribbon-item:nth-child(3),
+.period-ribbon .ribbon-item:nth-child(5) {
+    opacity: 0.6;
+    transform: scale(0.95);
+}
+
+.period-ribbon .ribbon-item:nth-child(2),
+.period-ribbon .ribbon-item:nth-child(6) {
+    opacity: 0.4;
+    transform: scale(0.9);
+}
+
+.period-ribbon .ribbon-item:nth-child(1),
+.period-ribbon .ribbon-item:nth-child(7) {
+    opacity: 0.2;
+    transform: scale(0.85);
+}
+
+.ribbon-item.disabled {
+    opacity: 0.2 !important;
+    pointer-events: none;
+    cursor: default;
+    color: #999;
+    background-color: transparent !important;
+}
+
+
+.balance-cards-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1.5rem;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.balance-card {
+  background-color: var(--card-bg, #fff);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.balance-card-ingresos { background: var(--ingresos-color); }
+.balance-card-gastos { background: var(--egresos-color); }
+.balance-card-resultado { background: var(--secondary-color); }
+
+.balance-card .card-body { 
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    height: 100%;
+}
+.balance-card .card-title-area { 
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem; 
+}
+.balance-card .card-title-area i {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+.balance-card h5 { 
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.0rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+.balance-card .card-time-ago { 
+    font-size: 0.8rem;
+    opacity: 0.9;
+    white-space: nowrap;
+    color: white;
+}
+.balance-card .card-amount {
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: right;
+}
+.balance-card .card-amount p.amount { 
+    font-size: 2.0rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    letter-spacing: -0.5px;
+    color: #fff
+}
+.balance-card .card-comparison {
+    margin-top: auto;
+    min-height: 21px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.badge-comparison {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #ffffffde;
+}
+
+.balance-card-ingresos .badge-comparison { background-color: rgba(255, 255, 255, 0.3); }
+.balance-card-gastos .badge-comparison { background-color: rgba(255, 255, 255, 0.3); }
+.balance-card-resultado .badge-comparison { background-color: rgba(255, 255, 255, 0.3); }
+
+.chart-container {
+  display: grid;
+  height: 400px !important;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 2px;
+  border-radius: var(--border-radius);
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-chart-placeholder { text-align: center; color: var(--on-surface-variant-color); }
+.empty-chart-placeholder i { font-size: 3rem; margin-bottom: 2rem; opacity: 0.5; }
+
+.section-title { font-weight: 600; margin-bottom: 1rem; font-size: 1.25rem; }
+
+/* Estilos para la nueva tarjeta de Ranking */
+.ranking-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.ranking-list {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.ranking-list .list-group-item {
+    border: none;
+    padding: 0.2rem 0.25rem;
+}
+
+.ranking-position {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: var(--on-surface-variant-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.ranking-item-name {
+    font-weight: 500;
+    color: var(--secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ranking-item-bar .progress {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+}
+
+.ranking-item-bar .progress-bar {
+    background-color: var(--registro-soft-color);
+}
+
+.ranking-item-bar .progress-bar.progress-bar-ingresos, .progress-bar.progress-bar-clientes {
+    background-color: var(--ingresos-soft-color);
+}
+
+.ranking-item-bar .progress-bar.progress-bar-egresos, .progress-bar.progress-bar-proveedores {
+    background-color: var(--egresos-soft-color);
+}
+
+.ranking-item-details {
+    font-size: 0.85rem;
+    color: var(--on-surface-variant-color);
+}
+
+.ranking-total {
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+/* Estilos para los botones activos del Ranking */
+.ranking-card .btn-group .btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/*.ranking-card .btn-group-toggle-colors .btn-todos.active {
+    background-color: var(--registro-soft-color);
+    border-color: var(--registro-soft-color);
+}*/
+.ranking-card .btn-group-toggle-colors .btn-ingreso.active, .btn-clientes.active {
+    background-color: var(--ingresos-soft-color);
+    border-color: var(--ingresos-soft-color);
+    color: white;
+    font-weight: 600;
+}
+.ranking-card .btn-group-toggle-colors .btn-egreso.active, .btn-proveedores.active {
+    background-color: var(--egresos-soft-color);
+    border-color: var(--egresos-soft-color);
+    color: white;
+    font-weight: 600;
+}
+
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .balance-cards-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        max-width: 95%;
+    }
+}
+
+@media (max-width: 767px) {
+    .balance-cards-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0;
+    }
+    .balance-card {
+        width: 100%;
+        padding: 1rem;
+        min-height: 120px;
+    }
+    .balance-card .card-amount p.amount { 
+        font-size: 1.75rem;
+    }
+    .chart-container {
+	    grid-template-columns: 1fr;
+    } 
+    .dynamic-period-selector-container {
+        padding: 0.75rem;
+    }
+    .period-ribbon {
+        gap: 0.2rem;
+    }
+    .ribbon-item {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    .period-ribbon-wrapper::before,
+    .period-ribbon-wrapper::after {
+        width: 20px;
+    }
+}
+
+/* Contenedor para la nueva leyenda HTML */
+.chart-legend-container {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chart-legend-container ul {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* Estilo de "Botón" para cada item de la leyenda */
+.chart-legend-container ul li {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50px; /* Bordes redondeados para forma de píldora */
+    padding: 6px 16px;
+    margin: 0 8px; /* Espaciado entre botones */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+}
+

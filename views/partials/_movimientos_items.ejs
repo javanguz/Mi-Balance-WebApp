@@ -1,0 +1,22 @@
+<!-- partials/_movimientos_items.ejs -->
+
+<% if (ultimosMovimientos.length === 0) { %>
+    <div class="text-center text-muted p-4">No hay movimientos para mostrar.</div>
+<% } else { %>
+    <% ultimosMovimientos.forEach(mov => { %>
+        <div class="list-group-item movement-item">
+            <div class="movement-info">
+                <div class="movement-entity"><%= mov.entidad_nombre %></div>
+                <div class="movement-meta">
+                    <span class="movement-date"><%= new Date(mov.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) %></span>
+                    <% if(mov.categoria_nombre) { %>
+                              <span class="badge category-badge <%= mov.tipo %>"><%= mov.categoria_nombre %></span>
+                    <% } %>
+                </div>
+            </div>
+            <div class="movement-amount <%= mov.tipo %>">
+                <%= mov.tipo === 'ingreso' ? formatIncome(mov.monto) : formatExpense(mov.monto) %>
+            </div>
+        </div>
+    <% }) %>
+<% } %>

@@ -1,0 +1,65 @@
+<!-- partials/_historial_reciente_egresos.ejs -->
+
+<% if (proveedorSeleccionado) { %>
+    <div class="card" style="width: fit-content;">
+        <div class="card-body">
+            <h6 class="card-title text-muted mb-3" style="font-size: 1.10rem;">Historial reciente de
+                 <span class="nombre-proveedor-destacado text-egreso fw-bold"><%= proveedorSeleccionado.nombre %></span>
+            </h6>
+
+            <% if (movimientos && movimientos.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table table-flush border-top" style="width: auto;">
+                         <tbody>
+                            <% 
+                            const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+                            movimientos.forEach((mov) => {
+                                const fecha = new Date(mov.fecha + 'T00:00:00');
+                                const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${meses[fecha.getMonth()]}`;
+                                
+                                // CORREGIDO: La clase del badge se invierte para egresos.
+                                // Un monto positivo (gasto) es 'egreso' (rojo).
+                                // Un monto negativo (crédito) es 'ingreso' (verde).
+                                const badgeClass = mov.monto >= 0 ? 'egreso' : 'ingreso';
+                            %>
+                            <tr style="vertical-align: middle;">
+                                <%#-- FECHA --%>
+                                <td class="text-center text-nowrap" style="font-size: 0.8rem; width: 60px;">
+                                    <span class="text-muted"><%= fechaFormateada %></span>
+                                </td>
+                                <%#-- CAT & MOD --%>
+                                <td class="px-3" style="font-size: 0.9rem; width: 1%; white-space: nowrap;">
+                                    <div class="fw-semibold text-muted small"><%= mov.categoria_nombre %></div>
+                                    <div class="text-muted small"><%= mov.modalidad %></div>
+                                </td>
+                                <%#-- COMENT --%>
+                                <td class="text-center" style="width: 40px;">
+                                    <% if (mov.comentarios) { %>
+                                        <i class="fa-solid fa-comment-dots text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="<%= mov.comentarios %>"></i>
+                                    <% } %>
+                                </td>
+                                
+                                <%#-- IMPORTE --%>
+                                <td class="text-end" style="white-space: nowrap;">
+                                    <span class="importe-badge <%= badgeClass %> text-nowrap">
+                                        <%# CORREGIDO: Se usa formatExpense para mostrar el signo correcto para egresos. %>
+                                        <%= formatExpense(mov.monto) %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <p class="text-center text-muted mt-3">Este proveedor no tiene movimientos registrados.</p>
+            <% } %>
+
+            <div class="text-end mt-1">
+                <a href="/registro?busqueda=<%= proveedorSeleccionado.id %>" class="btn btn-link" title="Ver todos los movimientos de este proveedor en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver todo el historial
+                </a>
+            </div>
+        </div>
+    </div>
+<% } %>

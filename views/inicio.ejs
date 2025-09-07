@@ -1,0 +1,745 @@
+<%- include('layout/_header', { title: title }) %>
+
+<%# --- MODIFICACIÓN --- %>
+<%# Se añade un elemento oculto si el PIN fue reseteado. El script del cliente lo usará para mostrar la notificación. %>
+<% if (locals.pinWasReset) { %>
+    <div id="pin-reset-notification" class="d-none"></div>
+<% } %>
+
+<div class="d-flex justify-content-between align-items-center mb-3 top-date-container">
+    <div id="current-date" class="date-display"></div>
+    <div id="current-time" class="time-placeholder text-end date-display"></div>
+</div>
+
+<div class="dynamic-period-selector-container mb-4">
+    <div class="d-flex justify-content-center">
+        <div class="granularity-selector">
+            <%
+                const views = [
+                    { key: 'anual', text: 'Anual' },
+                    { key: 'mensual', text: 'Mensual' },
+                    { key: 'semanal', text: 'Semanal' }
+                ];
+                const selectedViewKey = periodInfo.view;
+                const selectedIndex = views.findIndex(v => v.key === selectedViewKey);
+                if (selectedIndex !== -1) {
+                    const selectedItem = views.splice(selectedIndex, 1)[0];
+                    views.splice(1, 0, selectedItem);
+                }
+            %>
+
+            <% views.forEach(view => { %>
+                <a href="/inicio?view=<%= view.key %>" class="btn <%= selectedViewKey === view.key ? 'active' : '' %>"><%= view.text %></a>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="period-navigator">
+        <a href="<%= periodInfo.nav.prevLink %>" class="nav-arrow"><i class="fa-solid fa-chevron-left"></i></a>
+        <div class="period-ribbon-wrapper">
+            <div class="period-ribbon">
+                <% periodInfo.ribbon.forEach(item => { %>
+                    <a href="<%= item.link %>" class="btn ribbon-item <%= item.isActive ? 'active' : '' %> <%= item.isFuture ? 'disabled' : '' %>">
+                        <span class="ribbon-item-label"><%= item.label %></span>
+                        <% if (item.isActive && item.subLabel) { %>
+                            <span class="ribbon-item-sublabel"><%= item.subLabel %></span>
+                        <% } %>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+        <a href="<%= periodInfo.nav.nextLink %>" class="nav-arrow <%= periodInfo.nav.isNextDisabled ? 'disabled' : '' %>"><i class="fa-solid fa-chevron-right"></i></a>
+    </div>
+</div>
+
+
+<div class="balance-cards-container">
+    <div class="card balance-card balance-card-ingresos h-100">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="card-title-area">
+                    <i class="fa-solid fa-circle-up"></i>
+                    <h5>Ingresos</h5>
+                </div>
+                <span class="card-time-ago"><%= periodInfo.displayTitle %></span>
+            </div>
+            <div class="card-amount">
+                <p class="amount"><%= formatIncomeSimple(ingresos.total) %></p>
+            </div>
+            <div class="card-comparison">
+                <% if (comparisonData.ingresos.change !== null) { %>
+                    <span class="badge badge-comparison">
+                        <i class="fa-solid <%= comparisonData.ingresos.change >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' %> me-1"></i>
+                        <%= Math.abs(comparisonData.ingresos.change).toFixed(0) %>% <span class="fw-normal">vs</span> <%= comparisonData.previousPeriodLabel %>
+                    </span>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="card balance-card balance-card-resultado h-100">
+         <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="card-title-area">
+                    <i class="fa-solid fa-scale-balanced"></i>                
+                    <h5>Balance</h5>
+                </div>
+                <span class="card-time-ago"><%= periodInfo.displayTitle %></span>
+            </div>
+            <div class="card-amount">
+                <p class="amount"><%= formatResult(resultado.total) %></p>
+            </div>
+            <div class="card-comparison">
+                <% if (comparisonData.rentabilidad !== null) { %>
+                    <span class="badge badge-comparison"> <%= comparisonData.rentabilidad.toFixed(0) %>% <span class="fw-normal">de </span>rentabilidad</span> <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="card balance-card balance-card-gastos h-100">
+      <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="card-title-area">
+                    <i class="fa-solid fa-circle-down"></i>
+                    <h5>Egresos</h5>
+                </div>
+                <span class="card-time-ago"><%= periodInfo.displayTitle %></span>
+            </div>
+            <div class="card-amount">
+                <p class="amount"><%= formatExpenseSimple(gastos.total) %></p>
+            </div>
+            <div class="card-comparison">
+                <% if (comparisonData.gastos.change !== null) { %>
+                    <span class="badge badge-comparison">
+                        <i class="fa-solid <%= comparisonData.gastos.change >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' %> me-1"></i>
+                        <%= Math.abs(comparisonData.gastos.change).toFixed(0) %>% <span class="fw-normal">vs</span> <%= comparisonData.previousPeriodLabel %>
+                    </span>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico Histórico General -->
+<div class="row">
+    <div class="col-12 mb-4 mt-4">
+        <div class="chart-container" id="history-chart-container">
+            <% if (chartData.history.periods.length > 0 && (chartData.history.periods.some(p => p.details.length > 0))) { %>
+                 <canvas id="historyChart"></canvas>
+            <% } else { %>
+                 <div class="empty-chart-placeholder">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <p>No hay datos históricos<br>suficientes para graficar.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<style>
+    #custom-entity-search-results {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    #custom-entity-search[readonly] {
+        background-color: #e9ecef; 
+        cursor: pointer; 
+        -webkit-text-fill-color: var(--on-surface-color);
+        opacity: 1;
+    }
+</style>
+<!-- =============================================================== -->
+<!-- INICIO DE SECCIÓN INFERIOR: GRÁFICO PERSONALIZADO Y RANKING      -->
+<!-- =============================================================== -->
+<div class="row">
+    <!-- Columna del Ranking del Período -->
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card ranking-card">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-3">Ranking del Período</h5>
+                <div id="ranking-controls" class="btn-group w-100 mb-3 btn-group-toggle-colors" role="group">
+                    <button type="button" class="btn btn-tertiary btn-clientes active" data-type="clientes">Clientes</button>
+                    <button type="button" class="btn btn-tertiary btn-proveedores" data-type="proveedores">Proveedores</button>
+                    <button type="button" class="btn btn-tertiary btn-ingreso" data-type="ingresos">Ingresos</button>
+                    <button type="button" class="btn btn-tertiary btn-egreso" data-type="egresos">Egresos</button>
+                </div>
+                <div id="ranking-content" class="flex-grow-1">
+                    <!-- Contenido del ranking se carga aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Columna del Gráfico Personalizado -->
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-3">Histórico Personalizado</h5>
+                <div class="mb-3">
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <div class="position-relative flex-grow-1">
+                                <span class="position-absolute top-50 start-0 translate-middle-y ps-3" style="z-index: 5;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                <input type="text" class="form-control ps-5" id="custom-entity-search" placeholder="Seleccione cliente, proveedor o categoría" autocomplete="off">
+                                <button class="btn btn-sm btn-icon position-absolute top-50 end-0 translate-middle-y d-none" type="button" id="btn-clear-custom-entity-selection" title="Limpiar selección" style="z-index: 5;"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="list-group position-absolute w-100" id="custom-entity-search-results" style="z-index: 1050;"></div>
+                    </div>
+                    <input type="hidden" id="custom-entity-id" name="custom_entity_id">
+                </div>
+                <div class="chart-container flex-grow-1" id="custom-chart-container">
+                    <canvas id="customChart" style="display: none;"></canvas>
+                    <div id="custom-chart-placeholder" class="empty-chart-placeholder">
+                        <div id="placeholder-select-item">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            <p>Seleccione un ítem para<br>generar el gráfico.</p>
+                        </div>
+                        <div id="placeholder-no-data" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <p>No hay datos históricos<br>suficientes para graficar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- =============================================================== -->
+<!-- FIN DE SECCIÓN INFERIOR                                         -->
+<!-- =============================================================== -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- MODIFICACIÓN ---
+    // Se añade la lógica para mostrar el toast de advertencia si el elemento de notificación existe.
+    const pinResetNotification = document.getElementById('pin-reset-notification');
+    if (pinResetNotification) {
+        // Se utiliza la función de toast global para mostrar una advertencia persistente.
+        const toastContainer = document.querySelector('.toast-container');
+        const toastId = 'pin-reset-toast';
+        // Se verifica si el toast ya existe para no duplicarlo.
+        if (!document.getElementById(toastId)) {
+            const toastHtml = `
+                <div id="${toastId}" class="toast bg-warning text-dark" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+                    <div class="toast-header bg-warning text-dark border-bottom border-dark">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <strong class="me-auto">Alerta de Seguridad</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        Tu PIN fue restablecido a <strong>1234</strong> por una acción de emergencia. Se recomienda cambiarlo lo antes posible.
+                    </div>
+                </div>`;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+    }
+    // --- FIN MODIFICACIÓN ---
+
+    // --- LÓGICA PARA DESLIZAR EL SELECTOR DE PERÍODO ---
+    const ribbonWrapper = document.querySelector('.period-ribbon-wrapper');
+    if (ribbonWrapper) {
+        let touchstartX = 0;
+        let touchendX = 0;
+        const swipeThreshold = 50;
+        const prevLink = document.querySelector('.period-navigator .nav-arrow:first-child');
+        const nextLink = document.querySelector('.period-navigator .nav-arrow:last-child');
+        function handleSwipe() {
+            const swipeDistance = touchendX - touchstartX;
+            if (Math.abs(swipeDistance) < swipeThreshold) return;
+            if (swipeDistance < 0 && !nextLink.classList.contains('disabled')) {
+                window.location.href = nextLink.href;
+            }
+            if (swipeDistance > 0 && !prevLink.classList.contains('disabled')) {
+                window.location.href = prevLink.href;
+            }
+        }
+        ribbonWrapper.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, { passive: true });
+        ribbonWrapper.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleSwipe(); });
+    }
+    
+    // --- LÓGICA PARA GRÁFICOS ---
+    Chart.register(ChartDataLabels);
+    const getCssVariable = (variable) => getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    const primaryColor = getCssVariable('--primary-color');
+    const secondaryColor = getCssVariable('--secondary-color');
+    
+    function formatNumberCompact(num) {
+        if (num === null || num === undefined) return '';
+        const absNum = Math.abs(num);
+        let formatted;
+        if (absNum >= 1000000) {
+            formatted = (num / 1000000).toFixed(1).replace('.', ',') + 'M';
+        } else if (absNum >= 1000) {
+            formatted = (num / 1000).toFixed(1).replace('.', ',') + 'K';
+        } else {
+            formatted = num.toFixed(0);
+        }
+        return `$${formatted}`;
+    }
+
+    // --- GRÁFICO HISTÓRICO GENERAL ---
+    const historyChartData = <%- JSON.stringify(chartData.history) %>;
+    let historyChartInstance = null; 
+
+    function renderHistoryChart() {
+        if (historyChartInstance) {
+            historyChartInstance.destroy();
+        }
+
+        if (!historyChartData.periods || historyChartData.periods.length === 0) {
+            return;
+        }
+
+        let periodsToDisplay;
+        const screenWidth = window.innerWidth;
+
+        if (screenWidth < 768) { 
+            periodsToDisplay = historyChartData.periods.slice(-4);
+        } else if (screenWidth < 992) {
+            periodsToDisplay = historyChartData.periods.slice(-8);
+        } else { 
+            periodsToDisplay = historyChartData.periods;
+        }
+
+        if (periodsToDisplay.some(p => p.details.length > 0)) {
+            const labels = periodsToDisplay.map(p => p.label);
+            const incomeTotals = periodsToDisplay.map(p => p.details.filter(d => d.tipo === 'ingreso').reduce((sum, d) => sum + d.total, 0));
+            const expenseTotals = periodsToDisplay.map(p => p.details.filter(d => d.tipo === 'egreso').reduce((sum, d) => sum + d.total, 0));
+
+            const datasets = [{
+                label: 'Ingresos',
+                data: incomeTotals,
+                backgroundColor: '#5da043',
+                barPercentage: 0.9,
+                categoryPercentage: 0.5
+            }, {
+                label: 'Egresos',
+                data: expenseTotals,
+                backgroundColor: '#df655c',
+                barPercentage: 0.9,
+                categoryPercentage: 0.5
+            }];
+
+            historyChartInstance = new Chart(document.getElementById('historyChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 1)',
+                            displayColors: false,
+                            titleFont: { family: 'Poppins', weight: 'bold' },
+                            bodyFont: { family: 'Poppins' },
+                            bodySpacing: 6,
+                            callbacks: {
+                                title: function(context) {
+                                    const firstContext = context[0];
+                                    const datasetLabel = firstContext.dataset.label;
+                                    const totalValue = firstContext.raw;
+                                    if (totalValue === 0) return null;
+                                    const formatCurrency = (val) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
+                                    return `Total ${datasetLabel}: ${formatCurrency(totalValue)}`;
+                                },
+                                label: function(context) {
+                                    const periodIndex = context.dataIndex;
+                                    const datasetLabel = context.dataset.label;
+                                    const totalValue = context.raw;
+                                    if (totalValue === 0) return null;
+                                    const type = (datasetLabel === 'Ingresos') ? 'ingreso' : 'egreso';
+                                    const periodDetails = periodsToDisplay[periodIndex].details.filter(d => d.tipo === type);
+                                    const formatCurrency = (val) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
+                                    let tooltipBody = [];
+                                    if (periodDetails.length > 0) {
+                                        periodDetails.sort((a,b) => b.total - a.total).forEach(detail => {
+                                            tooltipBody.push(`${detail.categoria}: ${formatCurrency(detail.total)}`);
+                                        });
+                                    }
+                                    return tooltipBody;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: (context) => context.dataset.data[context.dataIndex] > 0,
+                            formatter: (value) => formatNumberCompact(value),
+                            rotation: -90,
+                            font: { family: 'Poppins', weight: '600', size: window.innerWidth < 992 ? 12 : 14 },
+                            anchor: 'end',
+                            offset: 8,
+                            align: function(context) {
+                                const allData = context.chart.data.datasets.flatMap(ds => ds.data);
+                                const maxValue = Math.max(...allData.filter(d => d > 0));
+                                if (maxValue === 0) return 'start';
+                                const currentValue = context.dataset.data[context.dataIndex];
+                                return currentValue < maxValue * 0.15 ? 'end' : 'start';
+                            },
+                            color: function(context) {
+                                const allData = context.chart.data.datasets.flatMap(ds => ds.data);
+                                const maxValue = Math.max(...allData.filter(d => d > 0));
+                                const isOutside = maxValue > 0 && context.dataset.data[context.dataIndex] < maxValue * 0.15;
+                                if (isOutside) {
+                                    return context.dataset.backgroundColor;
+                                } else {
+                                    return context.dataset.label === 'Ingresos' ? '#CEFAD0' : '#FFD9D4';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { display: false, grid: { display: false }, min: 0 },
+                        x: { grid: { display: false }, ticks: { color: secondaryColor, font: { family: 'Poppins', weight: 'bold', size: 14 } } }
+                    }
+                }
+            });
+        }
+    }
+
+    renderHistoryChart();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            renderHistoryChart();
+        }, 250);
+    });
+
+    const customChartCanvas = document.getElementById('customChart');
+    const customChartPlaceholder = document.getElementById('custom-chart-placeholder');
+    const placeholderSelectItem = document.getElementById('placeholder-select-item');
+    const placeholderNoData = document.getElementById('placeholder-no-data');
+    let customChartInstance = null;
+    let selectedEntityName = ''; 
+
+    const searchInput = document.getElementById('custom-entity-search');
+    const searchResults = document.getElementById('custom-entity-search-results');
+    const entityIdInput = document.getElementById('custom-entity-id');
+    const btnClearSelection = document.getElementById('btn-clear-custom-entity-selection');
+
+    const populateSearchResults = async (query) => {
+        try {
+            const response = await fetch(`/inicio/api/search-entities?q=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const entities = await response.json();
+            
+            searchResults.innerHTML = '';
+            
+            entities.forEach(entity => {
+                const item = document.createElement('a');
+                item.href = '#';
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `<div class="d-flex">
+                                    <div class="me-2"><span class="badge bg-light text-muted">${entity.tipo_display}</span></div>
+                                    <div>${entity.nombre}</div>
+                                  </div>`;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    seleccionarEntidad(entity);
+                });
+                searchResults.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Error searching entities:', error);
+        }
+    };
+
+    searchInput.addEventListener('focus', () => {
+        populateSearchResults('*');
+    });
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        populateSearchResults(query === '' ? '*' : query);
+    });
+    
+    searchInput.addEventListener('blur', () => {
+        setTimeout(() => { searchResults.innerHTML = ''; }, 200);
+    });
+
+    searchInput.addEventListener('click', () => {
+        if (searchInput.readOnly) {
+            resetearSeleccionEntidad();
+        }
+    });
+
+    btnClearSelection.addEventListener('click', resetearSeleccionEntidad);
+
+    function seleccionarEntidad(entity) {
+        selectedEntityName = entity.nombre;
+        searchInput.value = `${entity.nombre} (${entity.tipo_display})`;
+        searchInput.readOnly = true;
+        entityIdInput.value = JSON.stringify({type: entity.tipo, id: entity.id});
+        searchResults.innerHTML = '';
+        btnClearSelection.classList.remove('d-none');
+        fetchAndRenderCustomChart();
+    }
+
+    function resetearSeleccionEntidad() {
+        selectedEntityName = '';
+        searchInput.value = '';
+        searchInput.readOnly = false;
+        entityIdInput.value = '';
+        btnClearSelection.classList.add('d-none');
+        fetchAndRenderCustomChart();
+        searchInput.focus();
+    }
+
+    async function fetchAndRenderCustomChart() {
+        const selectedEntityJSON = entityIdInput.value;
+        const entities = selectedEntityJSON ? [JSON.parse(selectedEntityJSON)] : [];
+
+        if (entities.length === 0) {
+            if (customChartInstance) {
+                customChartInstance.destroy();
+                customChartInstance = null;
+            }
+            customChartCanvas.style.display = 'none';
+            customChartPlaceholder.style.display = 'block';
+            placeholderSelectItem.style.display = 'block';
+            placeholderNoData.style.display = 'none';
+            return;
+        }
+        
+        const currentUrlParams = new URLSearchParams(window.location.search);
+        const view = currentUrlParams.get('view') || 'mensual';
+        const year = currentUrlParams.get('year');
+        const month = currentUrlParams.get('month');
+        const week = currentUrlParams.get('week');
+        
+        const apiUrl = `/inicio/api/custom-chart-data?view=${view}&year=${year||''}&month=${month||''}&week=${week||''}&entities=${JSON.stringify(entities)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Error fetching data');
+            const data = await response.json();
+            renderCustomChart(data);
+        } catch (error) {
+            console.error("Failed to load custom chart data:", error);
+        }
+    }
+
+    function renderCustomChart(data) {
+        if (customChartInstance) {
+            customChartInstance.destroy();
+            customChartInstance = null;
+        }
+
+        const hasData = data.totals && data.totals.some(total => total > 0);
+
+        if (!hasData) {
+            customChartCanvas.style.display = 'none';
+            customChartPlaceholder.style.display = 'block';
+            placeholderSelectItem.style.display = 'none';
+            placeholderNoData.style.display = 'block';
+            return;
+        }
+
+        customChartCanvas.style.display = 'block';
+        customChartPlaceholder.style.display = 'none';
+
+        const colorPalette = {
+            '#df995c': '#f9f0e8',
+            '#df877c': '#f9eae8',
+            '#c786ab': '#f6e6f0',
+            '#77a5b3': '#e3f0f3'
+        };
+        const barColorKeys = Object.keys(colorPalette);
+        const randomColorKey = barColorKeys[Math.floor(Math.random() * barColorKeys.length)];
+        const barColor = randomColorKey;
+        const textColor = colorPalette[randomColorKey];
+
+        customChartInstance = new Chart(customChartCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Total',
+                    data: data.totals,
+                    backgroundColor: barColor,
+                    barPercentage: 0.9,
+                    categoryPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 30 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 1)',
+                        displayColors: false,
+                        callbacks: {
+                            title: () => selectedEntityName || null,
+                            label: (context) => `${context.label}: ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(context.raw)}`
+                        }
+                    },
+                    datalabels: {
+                        display: (context) => context.dataset.data[context.dataIndex] !== 0,
+                        formatter: (value) => formatNumberCompact(value),
+                        rotation: -90,
+                        anchor: 'end',
+                        offset: 8,
+                        font: { family: 'Poppins', weight: '600', size: window.innerWidth < 992 ? 12 : 14 },
+                        align: function(context) {
+                            const allData = context.chart.data.datasets.flatMap(ds => ds.data);
+                            const maxValue = Math.max(...allData.filter(d => d > 0));
+                            if (maxValue === 0) return 'start';
+                            const currentValue = context.dataset.data[context.dataIndex];
+                            return currentValue < maxValue * 0.15 ? 'end' : 'start';
+                        },
+                        color: function(context) {
+                            const allData = context.chart.data.datasets.flatMap(ds => ds.data);
+                            const maxValue = Math.max(...allData.filter(d => d > 0));
+                            const isOutside = maxValue > 0 && context.dataset.data[context.dataIndex] < maxValue * 0.15;
+
+                            if (isOutside) {
+                                return barColor;
+                            } else {
+                                return textColor;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { display: false, grid: { display: false }, min: 0 },
+                    x: { grid: { display: false }, ticks: { color: secondaryColor, font: { family: 'Poppins', weight: 'bold', size: 14 } } }
+                }
+            }
+        });
+    }
+
+    fetchAndRenderCustomChart();
+    
+    const rankingControls = document.getElementById('ranking-controls');
+    const rankingContent = document.getElementById('ranking-content');
+    const formatCurrencyRanking = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+    const renderRanking = (data, type) => {
+        if (!data || !data.top || data.grandTotal === 0) {
+            rankingContent.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+                <i class="fa-solid fa-triangle-exclamation fa-3x mb-4 mt-2 opacity-50"></i>
+                <p>No hay datos para este período.</p>
+            </div>`;
+            return;
+        }
+
+        const labels = {
+            clientes: 'Resto de Clientes',
+            proveedores: 'Resto de Proveedores',
+            ingresos: 'Resto de Ingresos',
+            egresos: 'Resto de Egresos'
+        };
+        const restoLabel = labels[type] || 'Resto';
+
+        const progressColors = {
+            ingresos: 'progress-bar-ingresos',
+            egresos: 'progress-bar-egresos',
+            clientes: 'progress-bar-clientes',
+            proveedores: 'progress-bar-proveedores'
+        };
+        const progressBarClass = progressColors[type] || '';
+
+
+        let html = '<ul class="list-group list-group-flush ranking-list">';
+        
+        data.top.forEach((item, index) => {
+            html += `<li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center flex-grow-1 me-2" style="min-width: 0;">
+                        <span class="ranking-position me-3">${index + 1}º</span>
+                        <span class="ranking-item-name">${item.name}</span>
+                    </div>
+                    <span class="ranking-item-details fw-bold text-nowrap">${formatCurrencyRanking(item.total)}</span>
+                </div>
+                <div class="ranking-item-bar">
+                    <div class="progress">
+                        <div class="progress-bar ${progressBarClass}" role="progressbar" style="width: ${item.percentage.toFixed(2)}%;" aria-valuenow="${item.percentage.toFixed(2)}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <span class="ranking-item-details">${item.percentage.toFixed(1)}%</span>
+                </div>
+            </li>`;
+        });
+
+        if (data.rest.total > 0) {
+            html += `<li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center flex-grow-1 me-2" style="min-width: 0;">
+                        <span class="ranking-position me-3" style="background-color: transparent; color: transparent;"></span>
+                        <span class="ranking-item-name text-muted fst-italic">${restoLabel}</span>
+                    </div>
+                    <span class="ranking-item-details fw-bold text-nowrap">${formatCurrencyRanking(data.rest.total)}</span>
+                </div>
+                <div class="ranking-item-bar">
+                    <div class="progress">
+                        <div class="progress-bar ${progressBarClass}" role="progressbar" style="width: ${data.rest.percentage.toFixed(2)}%;" aria-valuenow="${data.rest.percentage.toFixed(2)}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <span class="ranking-item-details">${data.rest.percentage.toFixed(1)}%</span>
+                </div>
+            </li>`;
+        }
+
+        html += '</ul>';
+
+        html += `<div class="ranking-total">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total General</span>
+                <span class="fw-bold fs-5">${formatCurrencyRanking(data.grandTotal)}</span>
+            </div>
+         </div>`;
+
+        rankingContent.innerHTML = html;
+    };
+
+    const fetchAndRenderRanking = async (type = 'clientes') => {
+        rankingContent.innerHTML = `<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+        
+        const currentUrlParams = new URLSearchParams(window.location.search);
+        const view = currentUrlParams.get('view') || 'mensual';
+        const year = currentUrlParams.get('year') || '';
+        const month = currentUrlParams.get('month') || '';
+        const week = currentUrlParams.get('week') || '';
+
+        try {
+            const response = await fetch(`/inicio/api/ranking-data?type=${type}&view=${view}&year=${year}&month=${month}&week=${week}`);
+            if (!response.ok) throw new Error('Failed to fetch ranking data');
+            const data = await response.json();
+            renderRanking(data, type);
+        } catch (error) {
+            console.error(error);
+            rankingContent.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center h-100 text-danger">
+                <i class="fa-solid fa-triangle-exclamation fa-3x mb-2 opacity-50"></i>
+                <small>Error al cargar el ranking.</small>
+            </div>`;
+        }
+    };
+
+    rankingControls.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            rankingControls.querySelector('.active').classList.remove('active');
+            e.target.classList.add('active');
+            const type = e.target.dataset.type;
+            fetchAndRenderRanking(type);
+        }
+    });
+
+    fetchAndRenderRanking();
+});
+</script>
+
+<%- include('layout/_footer') %>

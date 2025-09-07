@@ -1,0 +1,7 @@
+{
+  "ignore": [
+    "local_backup_settings.json",
+    "last_local_backup_date.json",
+    "license.json"
+  ]
+}

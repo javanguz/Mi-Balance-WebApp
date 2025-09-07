@@ -1,0 +1,125 @@
+<!-- partials/_pago_modals -->
+
+<div class="modal fade" id="modal-gestionar-proveedores" tabindex="-1" aria-labelledby="modalGestionarProveedoresLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalGestionarProveedoresLabel">Gestionar Proveedores</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Seleccione un proveedor para editarlo o agregue uno nuevo.</p>
+                <ul class="list-group" id="lista-gestion-proveedores" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Lista de proveedores se cargará aquí dinámicamente -->
+                </ul>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <div class="flex-grow-1 me-2">
+                    <input type="text" class="form-control" id="input-buscar-gestion-proveedor" placeholder="Buscar proveedor...">
+                </div>
+                <button type="button" class="btn btn-primary" id="btn-nuevo-proveedor-gestion">
+                    <i class="fa-solid fa-user-plus me-2"></i>Nuevo Proveedor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-agregar-proveedor" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modal-proveedor-label"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <form id="form-agregar-proveedor">
+            <input type="hidden" id="modal-proveedor-id">
+            <div class="mb-3"><label for="modal-proveedor-nombre" class="form-label">Nombre / Razón Social</label><input type="text" class="form-control" id="modal-proveedor-nombre" required placeholder="dato obligatorio"></div>
+            <div class="mb-3"><label for="modal-proveedor-cuit" class="form-label">CUIT/DNI</label><input type="text" class="form-control" id="modal-proveedor-cuit" required placeholder="dato obligatorio"></div>
+            <div class="mb-3"><label for="modal-proveedor-categoria" class="form-label">Categoría sugerida</label><select class="form-select" id="modal-proveedor-categoria"><% categorias.forEach(cat => { %><option value="<%= cat.id %>"><%= cat.nombre %></option><% }); %></select></div>
+            <div class="mb-3"><label for="modal-proveedor-telefono" class="form-label">Teléfono</label><input type="tel" class="form-control" id="modal-proveedor-telefono"></div>
+            <div class="mb-3"><label for="modal-proveedor-email" class="form-label">Email</label><input type="email" class="form-control" id="modal-proveedor-email"></div>
+            <div class="mb-3"><label for="modal-proveedor-comentarios" class="form-label">Comentarios</label><textarea class="form-control" id="modal-proveedor-comentarios" rows="3" maxlength="140"></textarea><div id="modal-char-counter-pago" class="form-text text-end">0 / 140</div></div>
+        </form>
+    </div>
+    <div class="modal-footer d-flex">
+        <button type="button" class="btn btn-outline-danger" id="btn-eliminar-proveedor-modal" style="flex: 1;">Eliminar</button>
+         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="flex: 1;">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btn-guardar-proveedor" style="flex: 2;">Guardar</button>
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="modal-confirmar-eliminar-proveedor" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirmar Eliminación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+    <div class="alert alert-warning"><strong>Atención:</strong> Al eliminar un proveedor, se borrarán también <strong>todos sus movimientos asociados</strong>. Esta acción es irreversible.</div>
+    <p>Para confirmar, escriba <strong id="palabra-confirmacion-pago" class="text-danger"></strong> abajo.</p><input type="text" class="form-control" id="input-confirmacion-pago"></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btn-confirmar-eliminacion-final-pago" disabled>Eliminar</button></div></div></div></div>
+
+<div class="modal fade" id="modal-gestion-categorias-pago" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Categorías de Egresos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Aquí puede editar, eliminar y agregar las categorías.</p>
+                <ul class="list-group" id="lista-categorias-gestion-pago" style="max-height: 400px; overflow-y: auto;"></ul>
+            </div>
+            <div class="modal-footer">
+                <form id="form-agregar-categoria-pago" class="w-100">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="input-nueva-categoria-gestion-pago" placeholder="Nueva categoría" required>
+                        <button class="btn btn-primary" type="submit">Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-restablecer-pago" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Confirmar Acción</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p>¿Está seguro que desea reiniciar el formulario? Se perderán los datos no guardados.</p></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btn-confirmar-restablecer-final-pago">Sí, Restablecer</button></div>
+</div></div></div>
+
+<div class="modal fade" id="modal-confirmar-eliminar-movimiento-pago" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirmar Eliminación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>¿Está seguro que desea eliminar este movimiento?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btn-confirmar-eliminacion-movimiento-final-pago">Sí, Eliminar</button></div></div></div></div>
+
+<div class="modal fade" id="modal-confirmar-ajuste-pago" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title text-warning"><i class="fa-solid fa-triangle-exclamation me-2"></i>Atención</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p>Está por registrar un movimiento que generará <strong>un crédito positivo</strong> en el historial del Proveedor.</p></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" id="btn-volver-ajuste-pago" data-bs-dismiss="modal">Volver</button><button type="button" class="btn btn-warning" id="btn-continuar-ajuste-pago">Continuar</button></div>
+</div></div></div>
+
+<div class="modal fade" id="modal-otra-modalidad-pago" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Especificar Modalidad</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><div class="mb-3"><label for="input-nueva-modalidad-pago" class="form-label">Nombre de la nueva modalidad:</label><input type="text" class="form-control" id="input-nueva-modalidad-pago"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" id="btn-guardar-nueva-modalidad-pago">Guardar</button></div>
+</div></div></div>
+    
+<div class="modal fade" id="modal-gestion-modalidades-pago" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Modalidades</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Aquí puede editar, eliminar y agregar las modalidades de pago. La modalidad <strong>Efectivo</strong> no se puede modificar.</p>
+                <p class="text-muted small mb-3">
+                    <i class="fa-solid fa-circle-info me-2"></i>Las modalidades son las mismas y compartidas entre pagos y cobranzas.
+                </p>
+                <ul class="list-group" id="lista-modalidades-gestion-pago" style="max-height: 400px; overflow-y: auto;"></ul>
+            </div>
+            <div class="modal-footer">
+                <form id="form-agregar-modalidad-pago" class="w-100">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="input-nueva-modalidad-gestion-pago" placeholder="Nueva modalidad" required>
+                        <button class="btn btn-primary" type="submit">Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-gestion-pago" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Confirmar Eliminación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p id="modal-confirmar-gestion-body-pago"></p></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btn-confirmar-gestion-final-pago">Confirmar</button></div>
+</div></div></div>

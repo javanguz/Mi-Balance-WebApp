@@ -1,0 +1,196 @@
+<%- include('layout/_header', { title: title }) %>
+
+<h1 class="mt-4 mb-4 page-title">
+        <span class="title-registro badge">
+        <i class="fa-solid fa-table-list fa-fw me-4"></i>Registro de Movimientos
+        </span>
+</h1>
+
+<div class="card">
+    <div class="card-body">
+      
+   <form action="/registro" method="GET" id="registro-filtros-form" class="mb-3">
+    <input type="hidden" name="tipo" id="filtro_tipo" value="<%= filtros.tipo || 'todos' %>">
+    <input type="hidden" name="pagina" value="1">
+
+    <div class="row g-3 align-items-lg-end">
+
+        <div class="col-12 col-lg-3">
+            <div class="btn-group btn-group-toggle-colors w-100" role="group">
+                <button type="button" class="btn btn-tertiary btn-todos tipo-btn w-100 <%= !filtros.tipo || filtros.tipo === 'todos' ? 'active' : '' %>" data-tipo="todos">Todos</button>
+                <button type="button" class="btn btn-tertiary btn-ingreso tipo-btn w-100 <%= filtros.tipo === 'ingreso' ? 'active' : '' %>" data-tipo="ingreso">Ingresos</button>
+                <button type="button" class="btn btn-tertiary btn-egreso tipo-btn w-100 <%= filtros.tipo === 'egreso' ? 'active' : '' %>" data-tipo="egreso">Egresos</button>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg">
+            <div class="input-group">
+                <input type="text" id="daterange" class="form-control" autocomplete="off" placeholder="Filtrar por fecha">
+                <input type="hidden" name="fecha_desde" id="fecha_desde" value="<%= filtros.fecha_desde || '' %>">
+                <input type="hidden" name="fecha_hasta" id="fecha_hasta" value="<%= filtros.fecha_hasta || '' %>">
+                <button class="btn btn-secondary" type="submit" title="Aplicar filtros"><i class="fa-solid fa-filter"></i></button>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="input-group">
+                <input type="text" id="busqueda" name="busqueda" class="form-control" placeholder="Buscar por texto" value="<%= filtros.busqueda || '' %>">
+                <button class="btn btn-secondary" type="submit"><i class="fa-solid fa-search"></i></button>
+            </div>
+        </div>
+        <div class="col-12 col-md-12 col-lg-auto">
+                <button type="button" id="btn-restablecer-filtros" class="btn btn-link text-nowrap" title="Restablecer filtros" disabled>
+                    <i class="fa-solid fa-undo me-1"></i>Restablecer
+                </button>
+        </div>
+
+    </div>
+</form>
+
+      
+   <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="registro-header">
+                    <tr>
+                        <th class="text-center">Tipo</th>
+                        <th>Fecha</th>
+                        <th>Entidad</th>
+                        <th>Categoría</th>
+                        <th>Modalidad</th>
+                        <th class="text-center"><i class="fa-solid fa-comment"></i></th>
+                        <th class="text-end">Importe</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (movimientos.length === 0) { %>
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No se encontraron movimientos con los filtros aplicados.</td>
+                        </tr>
+                    <% } else { %>
+                        <% const returnParams = new URLSearchParams(filtros); %>
+                        <% movimientos.forEach(mov => { %>
+                            <tr id="movimiento-row-<%= mov.id %>">
+                                <td class="text-center">
+                                     <% if (mov.tipo === 'ingreso') { %>
+                                        <i class="fa-solid fa-arrow-up" style="color: var(--ingresos-color);" title="Ingreso"></i>
+                                     <% } else { %>
+                                        <i class="fa-solid fa-arrow-down" style="color: var(--egresos-color);" title="Egreso"></i>
+                                     <% } %>
+                                </td>
+                                <td class="text-nowrap"><%= new Date(mov.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) %></td>
+                                <td>
+                                    <%= mov.entidad_nombre %>
+                                </td>
+                                <td><%= mov.categoria_nombre %></td>
+                                <td><%= mov.modalidad %></td>
+                                <td class="text-center">
+                                     <% if (mov.descripcion) { %>
+                                        <i class="fa-solid fa-comment-dots text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="<%= mov.descripcion %>"></i>
+                                     <% } %>
+                                </td>
+                                <td class="text-end fw-semibold text-nowrap">
+                                     <%- formatMontoConSigno(mov.monto, mov.tipo) %>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <% if (isLicensed) { %>
+                                        <% const editPath = mov.entidad_tipo === 'cliente' ? '/venta/editar/' : '/pago/editar/'; %>
+                                       <a href="<%= editPath %><%= mov.id %>?from=registro&<%= returnParams.toString() %>" class="btn btn-sm btn-icon btn-primary"><i class="fa-solid fa-pencil"></i></a>
+                                       <button type="button" class="btn btn-sm btn-icon btn-danger btn-eliminar-movimiento-registro" data-id="<%= mov.id %>" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminar-movimiento-registro"><i class="fa-solid fa-trash"></i></button>
+                                    <% } else { %>
+                                        <span class="text-muted" data-bs-toggle="tooltip" title="Se requiere licencia para editar o eliminar."><i class="fa-solid fa-lock"></i></span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                     <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center mt-3 flex-wrap">
+            <% if (totalPaginas > 1) { %>
+               <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <% const urlParams = new URLSearchParams(filtros); %>
+                        
+                        <% if (paginaActual > 1) { %>
+                            <% urlParams.set('pagina', 1); %>
+                            <li class="page-item">
+                                <a class="page-link" href="/registro?<%= urlParams.toString() %>" title="Primera página">
+                                    <span class="d-none d-sm-inline">Primero</span>
+                                    <span class="d-inline d-sm-none">&laquo;</span>
+                                </a>
+                            </li>
+                            <% urlParams.set('pagina', paginaActual - 1); %>
+                            <li class="page-item">
+                                <a class="page-link" href="/registro?<%= urlParams.toString() %>" title="Página anterior">
+                                    <span class="d-none d-sm-inline">Anterior</span>
+                                    <span class="d-inline d-sm-none">&lt;</span>
+                                </a>
+                            </li>
+                        <% } else { %>
+                            <li class="page-item disabled"><span class="page-link"><span class="d-none d-sm-inline">Primero</span><span class="d-inline d-sm-none">&laquo;</span></span></li>
+                            <li class="page-item disabled"><span class="page-link"><span class="d-none d-sm-inline">Anterior</span><span class="d-inline d-sm-none">&lt;</span></span></li>
+                        <% } %>
+
+                        <% 
+                        const maxPaginasVisibles = 5;
+                        let inicio = Math.max(1, paginaActual - Math.floor(maxPaginasVisibles / 2));
+                        let fin = Math.min(totalPaginas, inicio + maxPaginasVisibles - 1);
+                        if (fin - inicio + 1 < maxPaginasVisibles) {
+                            inicio = Math.max(1, fin - maxPaginasVisibles + 1);
+                        }
+                        %>
+                        <% if (inicio > 1) { %><li class="page-item disabled"><span class="page-link">...</span></li><% } %>
+                        <% for (let i = inicio; i <= fin; i++) { %>
+                             <% urlParams.set('pagina', i); %>
+                            <li class="page-item <%= i === paginaActual ? 'active' : '' %>"><a class="page-link" href="/registro?<%= urlParams.toString() %>"><%= i %></a></li>
+                        <% } %>
+                        <% if (fin < totalPaginas) { %><li class="page-item disabled"><span class="page-link">...</span></li><% } %>
+                        
+                        <% if (paginaActual < totalPaginas) { %>
+                            <% urlParams.set('pagina', paginaActual + 1); %>
+                            <li class="page-item">
+                                <a class="page-link" href="/registro?<%= urlParams.toString() %>" title="Página siguiente">
+                                    <span class="d-none d-sm-inline">Siguiente</span>
+                                    <span class="d-inline d-sm-none">&gt;</span>
+                                </a>
+                            </li>
+                            <% urlParams.set('pagina', totalPaginas); %>
+                            <li class="page-item">
+                                <a class="page-link" href="/registro?<%= urlParams.toString() %>" title="Última página">
+                                    <span class="d-none d-sm-inline">Último</span>
+                                    <span class="d-inline d-sm-none">&raquo;</span>
+                                </a>
+                            </li>
+                        <% } else { %>
+                             <li class="page-item disabled"><span class="page-link"><span class="d-none d-sm-inline">Siguiente</span><span class="d-inline d-sm-none">&gt;</span></span></li>
+                             <li class="page-item disabled"><span class="page-link"><span class="d-none d-sm-inline">Último</span><span class="d-inline d-sm-none">&raquo;</span></span></li>
+                        <% } %>
+                    </ul>
+                </nav>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-eliminar-movimiento-registro" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar este movimiento? Esta acción es irreversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminacion-final-registro">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<% pageScripts = '<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /><script src="/js/registro.client.js"></script>' %>
+<%- include('layout/_footer') %>

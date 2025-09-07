@@ -1,0 +1,116 @@
+<%#* views/layout/_header.ejs %>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Mi Negocio</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Estilos Generales -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Estilos Específicos de la Página de Inicio -->
+    <% if (locals.active_link && active_link === 'inicio') { %>
+        <link rel="stylesheet" href="/css/tablero.css">
+    <% } %>
+    <!-- Estilos Específicos para Registro y Reportes -->
+    <% if (locals.active_link && (active_link === 'registro' || active_link === 'reportes')) { %>
+        <link rel="stylesheet" href="/css/RegRep.css">
+    <% } %>
+</head>
+<% const sidebarPages = ['inicio', 'registro', 'reportes', 'settings']; %>
+<body class="<%= sidebarPages.includes(locals.active_link) ? 'with-sidebar' : '' 
+%> <%= (locals.active_link && active_link === 'inicio') ? 'tablero-page-bg' : '' 
+%> <%= (locals.active_link && active_link === 'venta') ? 'venta-page-bg' : '' 
+%> <%= (locals.active_link && active_link === 'pago') ? 'pago-page-bg' : ''
+%> <%= (locals.active_link && active_link === 'registro') ? 'registro-page-bg' : ''
+%> <%= (locals.active_link && active_link === 'reportes') ? 'reportes-page-bg' : '' %>">
+
+<!-- MENÚ LATERAL PARA ESCRITORIO -->
+<nav class="side-nav">
+    <div>
+        <a class="navbar-brand-side" href="/inicio">
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Mi Balance</span>
+        </a>
+        <div class="side-nav-links">
+            <a href="/inicio" class="side-nav-link <%= (locals.active_link && active_link === 'inicio') ? 'active' : '' %>">
+                <i class="fa-solid fa-chart-simple fa-fw"></i>
+                <span>Tablero</span>
+            </a>
+            <a href="/venta" class="side-nav-link <%= (locals.active_link && active_link === 'venta') ? 'active' : '' %>">
+                <i class="fa-solid fa-circle-up fa-fw"></i>
+                <span>Ingresos</span>
+            </a>
+            <a href="/pago" class="side-nav-link <%= (locals.active_link && active_link === 'pago') ? 'active' : '' %>">
+                <i class="fa-solid fa-circle-down fa-fw"></i>
+                <span>Egresos</span>
+            </a>
+            <a href="/registro" class="side-nav-link <%= (locals.active_link && active_link === 'registro') ? 'active' : '' %>">
+                <i class="fa-solid fa-table-list fa-fw"></i>
+                <span>Registro</span>
+            </a>
+            <a href="/reportes" class="side-nav-link <%= (locals.active_link && active_link === 'reportes') ? 'active' : '' %>">
+                <i class="fa-solid fa-file-lines fa-fw"></i>
+                <span>Reportes</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Pie del menú lateral con información y botón de opciones -->
+    <div class="side-nav-footer">
+        <div class="settings-menu">
+            <div class="settings-submenu" id="settings-submenu">
+                <a href="/settings/database" class="submenu-link">
+                    <i class="fa-solid fa-database fa-fw"></i>
+                    <span>Base de Datos</span>
+                </a>
+                <a href="#" class="submenu-link" data-bs-toggle="modal" data-bs-target="#modal-licencia">
+                    <i class="fa-solid fa-key fa-fw"></i>
+                    <span>Licencia</span>
+                </a>
+                <a href="#" class="submenu-link" data-bs-toggle="modal" data-bs-target="#modal-cambiar-pin">
+                    <i class="fa-solid fa-lock-open fa-fw"></i>
+                    <span>Cambiar PIN</span>
+                </a>
+                <div class="submenu-divider"></div>
+                <a href="/logout" class="submenu-link text-danger">
+                    <i class="fa-solid fa-sign-out-alt fa-fw"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+            <button class="settings-toggle-btn" id="settings-toggle-btn">
+                <i class="fa-solid fa-bars"></i>
+                <span>Opciones</span>
+            </button>
+        </div>
+        <!-- MODIFICADO: Muestra el username y el cuit -->
+        <div class="side-nav-info">
+             <small>Usuario</small>
+             <strong class="user-name"><%= username %></strong>
+             <hr>
+             <small>CUIT</small>
+             <strong class="cuit-id"><%= cuit %></strong>
+        </div>
+    </div>
+</nav>
+
+<!-- BARRA DE NAVEGACIÓN SUPERIOR (PARA MÓVIL) -->
+<nav class="navbar fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-semibold" href="/inicio" style="color: #595959;">
+            <i class="fa-solid fa-square-poll-vertical me-2"></i>Mi Balance
+        </a>
+        <button class="btn btn-icon btn-tertiary" type="button" data-bs-toggle="offcanvas" data-bs-target="#main-menu" aria-controls="main-menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<div class="main-container">

@@ -1,0 +1,382 @@
+/* ================ */
+/* ESTILOS COMUNES  */
+/* ================ */ 
+
+.btn-group-toggle-colors .btn {
+    transition: all 0.2s ease;
+}
+/* Estilo para el botón "Todos" cuando está activo */
+.btn-group-toggle-colors .btn-todos.active {
+    background-color: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+}
+/* Estilo para el botón "Ingresos" cuando está activo */
+.btn-group-toggle-colors .btn-ingreso.active {
+    background-color: var(--ingresos-soft-color);
+    color: white;
+    border-color: var(--ingresos-soft-color);
+}
+/* Estilo para el botón "Egresos" cuando está activo */
+.btn-group-toggle-colors .btn-egreso.active {
+    background-color: var(--egresos-soft-color);
+    color: white;
+    border-color: var(--egresos-soft-color);
+}
+
+
+/* =============================================================== */
+/* ESTILOS PARA LA PANTALLA DE REGISTRO                            */
+/* =============================================================== */
+
+.table thead.registro-header th {
+    background-color: var(--registro-color);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Altura de las filas en la grilla de la pantalla de registro */
+#registro-filtros-form + .table-responsive .table tbody td {
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+    font-size: 0.9rem; /* Opcional: reduce el tamaño del texto */
+    color: var(--on-surface-variant-color)
+}
+
+/* --- Estilos para la Paginación --- */
+.pagination .page-link {
+    color: var(--on-secondary-container-color); /* Color de los enlaces normales */
+    border-radius: 0.25rem; /* Bordes redondeados para todos */
+    border: 1px solid var(--border-color);
+    display: flex;           /* Habilita flexbox para centrar */
+    justify-content: center; /* Centra el número horizontalmente */
+    align-items: center;     /* Centra el número verticalmente */
+    padding: 0.50rem;              /* Elimina el padding para un centrado perfecto */
+}
+
+.pagination .page-link:hover {
+    background-color: var(--primary-container-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--registro-color);
+    color: white;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: var(--bg-color);
+}
+
+
+/* ESTILOS PERSONALIZADOS PARA DATERANGEPICKER                     */
+
+/* --- Contenedor principal del calendario --- */
+.daterangepicker {
+    font-family: var(--font-family-base) !important;
+    border-radius: var(--border-radius);
+    border-color: var(--border-color);
+    background-color: var(--bg-color) !important;
+    box-shadow: var(--shadow-md);
+    padding: 1rem;
+}
+
+/* --- Botones "Aplicar" y "Limpiar" --- */
+.daterangepicker .applyBtn,
+.daterangepicker .cancelBtn {
+    font-weight: 500 !important;
+    padding: 0.5rem 1.5rem !important;
+}
+
+.daterangepicker .applyBtn {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.daterangepicker .cancelBtn {
+    background-color: transparent !important;
+    color: var(--on-surface-variant-color) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+.daterangepicker .cancelBtn:hover {
+    background-color: var(--bg-color) !important;
+    color: var(--on-surface-color) !important;
+}
+
+
+/* --- Estilo para los días del calendario --- */
+.daterangepicker td {
+    font-size: 0.9rem !important; /* Aumenta el tamaño de los números de los días */
+    font-weight: 400 !important; /* Hace la fuente un poco más gruesa */
+    background-color: var(--bg-color);
+}
+
+/* Estilo para todos los días dentro del rango */
+.daterangepicker td.in-range {
+    background-color: var(--primary-container-color) !important;
+}
+
+/* Fecha inicial */
+.daterangepicker td.start-date {
+    background-color: var(--on-primary-container-color) !important;
+    color: #fff !important;
+    border-right: 50px !important;
+}
+
+/* Fecha final */
+.daterangepicker td.end-date {
+    background-color: var(--on-primary-container-color) !important;
+    color: #fff !important;
+    border-left: 50px !important;
+}
+
+/* -- hover sobre los dias --*/
+.daterangepicker td.available:hover {
+    background-color: #efe9eb !important;
+    border-radius: var(--border-radius) !important;
+}
+
+/* -- detalle del periodo seleccionado --*/
+.daterangepicker .drp-selected {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: var(--on-primary-container-color) !important;
+    padding: 6px 12px !important;
+    vertical-align: middle !important;
+}
+
+/* --- Rangos predefinidos (Hoy, Ayer, etc.) --- */
+
+.daterangepicker .ranges {
+    flex-shrink: 0 !important; /* Evita que esta columna se comprima */
+    margin-right: 1rem !important; /* Añade un espacio de separación con los calendarios */
+}
+.daterangepicker .ranges li {
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1rem !important;
+    background-color: var(--bg-color) !important;
+    white-space: nowrap !important;
+    min-width: 150px !important;
+}
+
+.daterangepicker .ranges li:hover {
+    background-color: var(--primary-container-color) !important;
+    color: var(--primary-color);
+}
+
+.daterangepicker .ranges li.active {
+    background-color: var(--on-primary-container-color) !important;
+    border-color: var(--on-primary-container-color) !important;
+}
+
+
+
+/* =============================================================== */
+/* ESTILOS PARA LA PANTALLA DE REPORTES                            */
+/* =============================================================== */
+.report-container {
+    /* Se cambia la fuente a Open Sans como fue solicitado */
+    font-family: 'Open Sans', sans-serif !important;
+    background-color: var(--surface-color); /* Asegura el fondo blanco */
+    padding: 1.5rem; /* Añade espaciado interno para mejor estética */
+    border-radius: var(--border-radius); /* Mantiene los bordes redondeados consistentes */
+}
+
+.report-results-card {
+    width: fit-content; /* Adapta el ancho de la tarjeta a su contenido (la tabla) */
+    max-width: 100%; /* Asegura que no se desborde en pantallas pequeñas */
+}
+
+.report-header {
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+}
+.report-title {
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+.report-header ul li {
+    margin-bottom: 0.5rem;
+}
+.report-table th {
+    font-weight: bold;
+    border-bottom: 1px solid var(--on-surface-color) !important;
+}
+.report-table tfoot {
+    border-top: 1px solid var(--on-surface-color) !important;
+}
+/* Quitamos los bordes por defecto de las celdas */
+.report-table tbody td {
+    border: none;
+}
+/* Agregamos un borde superior a cada fila de movimiento (pero no a las de comentario) */
+.report-table tbody tr:not(.comment-row) {
+    border-top: 1px solid var(--border-color);
+}
+
+.report-table tbody tr:nth-child(odd):not(.comment-row) td {
+    background-color: var(--bg-color) !important; /* Fondo gris claro SOLO para filas impares */
+}
+
+.comment-row td {
+    border-top: none;
+    font-size: 0.85em;
+}
+
+
+.ts-wrapper.has-items .ts-control > input::placeholder {
+    color: transparent; /* Oculta el placeholder cuando hay items deleccionados en el filtro */
+}
+
+/*-- Listas desplegables con filtros (TomSelect) --*/
+
+.ts-dropdown .option.active {
+    background-color: var(--primary-container-color);
+    color: var(--primary-color);
+}
+
+/* Cuando el switch está desactivado: estilo de las leyendas */
+.form-check.form-switch .form-check-label {
+    color: var(--on-secondary-container-color); /* un gris o color más suave */
+    font-size: 0.9rem; /* un poco más chico */
+    opacity: 1;
+}
+
+/* Cuando el switch está activado: estilo de las leyendas */
+.form-check.form-switch .form-check-input:checked ~ .form-check-label {
+    color: var(--on-surface-color); /* mismo color que el texto normal */
+    font-size: 1rem; /* tamaño normal */
+    opacity: 1;
+}
+
+/* Estilo personalizado para los badges de filtros en el reporte */
+.report-header .badge.bg-secondary {
+    background-color: #dbdbe2 !important;
+    color: black !important;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+/** ESTILOS PARA LA TABLA DE REPORTES DETALLADA (SIN RESUMEN) **/
+.report-table-detailed {
+    table-layout: fixed;
+}
+.report-table-detailed th,
+.report-table-detailed tbody td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.report-table-detailed th:nth-child(5),
+.report-table-detailed tr:not(.comment-row) td:nth-child(5) {
+    overflow: visible;
+}
+.report-table-detailed th:nth-child(1) { width: 100px; } /* Fecha */
+.report-table-detailed th:nth-child(2) { width: 200px; } /* Entidad */
+.report-table-detailed th:nth-child(3) { width: 200px; } /* Categoría */
+.report-table-detailed th:nth-child(4) { width: 120px; } /* Modalidad */
+.report-table-detailed th:nth-child(5) { width: 150px; } /* Importe */
+
+/** NUEVOS ESTILOS PARA REPORTES CON RESUMEN **/
+/* --- Estilos Generales para Tablas de Resumen --- */
+.summary-table-single,
+.summary-table-all {
+    table-layout: auto !important;
+    width: 100%;
+}
+
+/* 1. La columna de concepto (la primera celda) se adapta al contenido con un máximo. */
+.summary-table td:first-child,
+.summary-table th:first-child {
+    max-width: 400px;
+    width: 1%; /* Truco para que la columna se encoja al mínimo necesario. */
+    white-space: nowrap;
+}
+
+/* 2. El texto DENTRO de la celda de concepto se corta si es muy largo. */
+.summary-table td:first-child .concept-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* --- Estilos Específicos para Columnas de Importe --- */
+
+/* Para reporte de TIPO ÚNICO (2 Columnas): la columna de importe ocupa el resto. */
+.summary-table-single td:last-child,
+.summary-table-single th:last-child {
+    width: 99%;
+}
+
+/* Para reporte de TODOS los tipos (4 Columnas): las 3 columnas de importe tienen un ancho mínimo. */
+.summary-table-all .amount-col-narrow {
+    min-width: 100px; /* Se puede ajustar si es necesario */
+    text-align: right;
+}
+
+/* Tamaños de fuente por nivel */
+.summary-table .level-1 td { font-size: 1rem; }
+.summary-table .level-2 td { font-size: 0.95rem; }
+.summary-table .level-3 td { font-size: 0.90rem; }
+
+/* Sangría izquierda para conceptos */
+.summary-table .level-2 .concept-label { padding-left: 2.5rem; }
+.summary-table .level-3 .concept-label { padding-left: 5rem; }
+
+/* --- Sangría derecha para importes (Reporte de tipo único) --- */
+
+/* Caso 1: SIN sangría cuando solo hay un nivel */
+.summary-table-single.has-one-level .level-1 .amount-cell { padding-right: 0; }
+
+/* Caso 2: Con sangría cuando hay dos niveles */
+.summary-table-single.has-two-levels .level-1 .amount-cell { padding-right: 2.5rem; }
+
+/* Caso 3: Con sangría escalonada cuando hay tres niveles */
+.summary-table-single.has-three-levels .level-1 .amount-cell { padding-right: 5rem; }
+.summary-table-single.has-three-levels .level-2 .amount-cell { padding-right: 2.5rem; }
+
+/* Sangría derecha para importes (Reporte de todos los tipos) */
+.summary-table-all .level-1 .amount-cell { padding-right: 2.5rem; }
+
+/* Quitar sangría en reportes 'Todos' de un solo nivel */
+.summary-table-all.has-one-level .level-1 .amount-cell { padding-right: 0; }
+
+/* Borde sutil para agrupar visualmente los conceptos de primer nivel */
+/* 1. Estilo remarcado para el 1er nivel CUANDO hay 2 o 3 niveles */
+.summary-table.has-two-levels tr.level-1,
+.summary-table.has-three-levels tr.level-1 {
+    border-top: 1px solid #807a7d !important;
+    font-weight: 600 !important;
+}
+
+/* 2. Estilo diferente (más sutil) para el 1er nivel CUANDO solo hay 1 nivel */
+.summary-table.has-one-level tr.level-1 {
+    border-top: 1px solid var(--border-color); /* Color de borde por defecto */
+}
+
+/* Estilo remarcado para el 2do nivel CUANDO hay 3 niveles */
+.summary-table.has-three-levels tr.level-2 {
+    font-weight: 500 !important;
+}
+
+
+.summary-table tfoot tr.level-1 {
+    border-top: 1px solid var(--on-surface-color) !important;
+}
+
+
+.report-header .badge.filter-badge {
+    white-space: normal; /* Permite que el texto pase a la siguiente línea */
+    text-align: left; /* Alinea el texto a la izquierda si hay varias líneas */
+    word-break: break-all; /* Fuerza el corte de palabras largas para que no se desborde */
+    max-width: 100%; /* Asegura que el badge no sea más ancho que su contenedor */
+}

@@ -1,0 +1,171 @@
+<%- include('layout/_header', { title: title }) %>
+
+<h1 class="mt-4 mb-4 page-title">
+    <span class="title-ingresos badge">
+        <i class="fa-solid fa-circle-up me-4"></i>Ingresos · Ventas · Cobranzas
+    </span>
+</h1>
+
+<% if (!isLicensed) { %>
+    <div class="alert alert-warning text-center">
+        <i class="fa-solid fa-lock me-2"></i> Para cargar o modificar ingresos, se requiere una licencia activa.
+    </div>
+<% } %>
+
+<div class="form-historial-container">
+    
+    <div class="form-container-flex">
+        <div class="card">
+            <div class="card-body">
+                <form id="form-cargar-venta" action="<%= movimiento ? '/venta/editar/' + movimiento.id : '/venta' %>" method="POST">
+                    <fieldset <%= !isLicensed ? 'disabled' : '' %>>
+                        <% if (locals.returnToReport) { %>
+                        <input type="hidden" name="returnToReport" value="true">
+                        <input type="hidden" name="returnQuery" value="<%= returnQuery %>">
+                         <% } %>
+                        <% if (locals.returnToRegistro) { %>
+                        <input type="hidden" name="returnToRegistro" value="true">
+                        <input type="hidden" name="returnQuery" value="<%= returnQuery %>">
+                        <% } %>
+                    
+                        <div class="mb-3">
+                             <label for="cliente-search" class="form-label">Cliente</label>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                     <div class="position-relative flex-grow-1">
+                                        <input type="text" class="form-control" id="cliente-search" placeholder="Buscar cliente o ingresar * para ver todos" autocomplete="off" value="<%= clienteSeleccionado ? `${clienteSeleccionado.nombre} (${clienteSeleccionado.id})` : '' %>" <%= clienteSeleccionado ? 'disabled' : '' %>>
+                                        <button class="btn btn-sm btn-icon position-absolute top-50 end-0 translate-middle-y <%= clienteSeleccionado ? '' : 'd-none' %>" type="button" id="btn-clear-cliente-selection" title="Limpiar selección" data-bs-toggle="tooltip" style="z-index: 5;">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                     </div>
+                                </div>
+                                <div class="list-group position-absolute w-100" id="search-results" style="z-index: 1050;"></div>
+                            </div>
+                         </div>
+            
+                        <input type="hidden" id="cliente_id" name="cliente_id" value="<%= clienteSeleccionado ? clienteSeleccionado.id : '' %>">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="fecha" class="form-label">Fecha</label>
+                                 <input type="date" class="form-control" id="fecha" name="fecha" value="<%= movimiento ? movimiento.fecha : getTodayForInput() %>" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="importe" class="form-label">Importe</label>
+                                 <div class="d-flex align-items-center gap-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="importe-signo">$</span>
+                                        <%# --- INICIO CORRECCIÓN --- %>
+                                        <input type="number" class="form-control" id="importe" name="importe" placeholder="0.00" value="<%= movimiento ? Math.abs(movimiento.monto) : '' %>" required step="0.01">
+                                        <%# --- FIN CORRECCIÓN --- %>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                         <div class="form-check form-switch">
+                                            <%# --- INICIO CORRECCIÓN --- %>
+                                            <input class="form-check-input" type="checkbox" role="switch" value="true" id="es_ajuste_venta" name="es_ajuste" <%= (movimiento && movimiento.monto < 0) ? 'checked' : '' %>>
+                                            <%# --- FIN CORRECCIÓN --- %>
+                                             <label class="form-check-label label-ajuste text-nowrap" for="es_ajuste_venta">Crédito</label>
+                                        </div>
+                                        <i class="fa-solid fa-circle-info info-icon ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                            title="Útil para registrar notas de crédito, ajustes, descuentos o reembolsos de clientes.">
+                                        </i>
+                                    </div>
+                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="modalidad-select">Modalidad</label>
+                            <select class="form-select" name="modalidad" id="modalidad-select">
+                                 <% 
+                                let selectedModalidad = movimiento ? movimiento.modalidad : (modalidades.length > 0 ? modalidades[0].nombre : '');
+                                modalidades.forEach(m => { %>
+                                    <option value="<%= m.nombre %>" <%= selectedModalidad === m.nombre ? 'selected' : '' %>><%= m.nombre %></option>
+                                 <% }); %>
+                            <% if (movimiento && !modalidades.some(m => m.nombre === movimiento.modalidad)) { %>
+                                <option value="<%= movimiento.modalidad %>" selected class="custom-modalidad"><%= movimiento.modalidad %></option>
+                                 <% } %>
+                            <option value="Otra...">Otra...</option>
+                            </select>
+                        </div>
+                    
+                        <div class="mb-3">
+                            <label for="categoria_id" class="form-label">Categoría</label>
+                            <select class="form-select" name="categoria_id" id="categoria_id">
+                            <% categorias.forEach(cat => { %>
+                                    <option value="<%= cat.id %>" data-editable="<%= cat.es_editable %>" 
+                                    <%= (movimiento && movimiento.categoria_id == cat.id) || (!movimiento && cat.es_editable == 0) ? 'selected' : '' %>>
+                                    <%= cat.nombre %>
+                                </option>
+                                 <% }); %>
+                            </select>
+                         </div>
+                        
+                        <div class="mb-3">
+                             <label for="comentarios" class="form-label">Comentario (opcional)</label>
+                            <div class="position-relative">
+                                <textarea class="form-control" id="comentarios" name="comentarios" rows="1" maxlength="140"><%= movimiento ? (movimiento.descripcion || '') : '' %></textarea>
+                                <button type="button" class="btn btn-sm btn-icon position-absolute top-50 end-0 translate-middle-y " id="btn-clear-comentario" title="Limpiar comentario" data-bs-toggle="tooltip">
+                                <i class="fa-solid fa-times"></i>
+                                 </button>
+                            </div>
+                            <div id="char-counter" class="form-text text-end d-none">0 / 140</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <span id="btn-confirmar-wrapper" class="d-grid" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Faltan datos obligatorios por completar">
+                                 <button type="submit" class="btn btn-primary" id="btn-confirmar-movimiento">
+                                    <i class="fa-solid fa-check me-2"></i>
+                                    <%= movimiento ? 'Actualizar Movimiento' : 'Confirmar Movimiento' %>
+                                </button>
+                            </span>
+                        </div>
+                    </fieldset>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                            <% if (!movimiento) { %>
+                                <button type="button" class="btn btn-link" id="btn-restablecer-formulario" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restablecer" <%= !isLicensed ? 'disabled' : '' %>>
+                                    <i class="fa-solid fa-undo me-1"></i>Limpiar formulario
+                                </button>
+                            <% } %>
+                        </div>
+
+                        <% if (!movimiento && isLicensed) { %>
+                        <div class="dropup">
+                            <button class="btn btn-tertiary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-sliders me-2"></i>Gestionar
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-gestionar-clientes"><i class="fa-solid fa-users fa-fw me-2 mb-2"></i>Clientes</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-gestion-categorias-venta"><i class="fa-solid fa-tags fa-fw me-2 mb-2"></i>Categorías</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-gestion-modalidades"><i class="fa-solid fa-wallet fa-fw me-2 mb-2"></i>Modalidades</a></li>
+                            </ul>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <% if (locals.returnToRegistro || locals.returnToReport) { %>
+                        <div class="d-grid mt-2">
+                            <a href="<%= locals.returnToRegistro ? '/registro?' + returnQuery : '/reportes/generar?' + returnQuery %>" class="btn btn-outline-secondary">Cancelar y Volver</a>
+                        </div>
+                    <% } %>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="historial-container-flex">
+         <div id="historial-cliente-container">
+            <% if (clienteSeleccionado) { %>
+                <%- include('partials/_historial_reciente_ingresos', { movimientos: [], clienteSeleccionado: clienteSeleccionado }) %>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Modals remain the same -->
+<%- include('partials/_venta_modals') %>
+
+<% pageScripts = '<script src="/js/venta.client.js"></script>' %>
+<%- include('layout/_footer') %>

@@ -1,0 +1,167 @@
+<%#* views/layout/_footer.ejs %>
+
+</div> 
+
+<nav class="bottom-nav">
+    <a href="/inicio" class="bottom-nav-link <%= (locals.active_link && active_link === 'inicio') ? 'active' : '' %>">
+        <i class="fa-solid fa-chart-simple"></i>
+        <span>Tablero</span>
+    </a>
+    <a href="/venta" class="bottom-nav-link <%= (locals.active_link && active_link === 'venta') ? 'active' : '' %>">
+        <i class="fa-solid fa-circle-up"></i>
+        <span>Ingresos</span>
+    </a>
+    <a href="/pago" class="bottom-nav-link <%= (locals.active_link && active_link === 'pago') ? 'active' : '' %>">
+        <i class="fa-solid fa-circle-down"></i>
+        <span>Egresos</span>
+    </a>
+    <a href="/registro" class="bottom-nav-link <%= (locals.active_link && active_link === 'registro') ? 'active' : '' %>">
+        <i class="fa-solid fa-table-list"></i>
+        <span>Registro</span>
+    </a>
+    <a href="/reportes" class="bottom-nav-link <%= (locals.active_link && active_link === 'reportes') ? 'active' : '' %>">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>Reportes</span>
+    </a>
+</nav>
+
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="main-menu" style="width: 280px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title">Menú</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div class="d-grid">
+            <a href="/logout" class="btn btn-outline-danger"><i class="fa-solid fa-sign-out-alt fa-fw me-2"></i>Cerrar Sesión</a>
+        </div>
+        <div class="mt-auto pt-3 text-center border-top">
+             <small class="text-muted d-block" style="font-size: 0.8rem;">Usuario</small>
+             <strong class="text-muted d-block" style="font-size: 0.9rem; word-wrap: break-word;"><%= username %></strong>
+             <hr class="my-2">
+             <small class="text-muted d-block" style="font-size: 0.8rem;">CUIT</small>
+             <strong class="text-muted" style="font-size: 0.9rem; word-wrap: break-word;"><%= cuit %></strong>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-licencia" tabindex="-1" aria-labelledby="modalLicenciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLicenciaLabel">Gestión de Licencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="license-active-view" class="d-none">
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading text-center"><i class="fa-solid fa-check-circle me-2"></i>Licencia Activa</h4>
+                        <p class="text-center">Este software tiene una licencia activa para:</p>
+                        <hr>
+                        <p class="mb-0 fs-5 text-center fw-bold" id="active-license-username"></p>
+                    </div>
+                    <p class="text-muted small">Si desea activar una nueva licencia, primero debe eliminar la actual.</p>
+                    <div class="d-grid">
+                        <button class="btn btn-outline-danger" id="btn-delete-license">
+                            <i class="fa-solid fa-trash-alt me-2"></i>Eliminar Licencia
+                        </button>
+                    </div>
+                </div>
+
+                <div id="license-activation-view">
+                    <p class="text-muted">La licencia del software está vinculada al nombre de usuario y CUIT.</p>
+                    <div class="mb-3">
+                        <label for="license-username-input" class="form-label">Nombre de Usuario</label>
+                        <input type="text" class="form-control" id="license-username-input" placeholder="Ingrese el nombre de usuario de la licencia">
+                    </div>
+                    <div class="mb-3">
+                        <label for="license-cuit-input" class="form-label">CUIT</label>
+                        <input type="text" class="form-control" id="license-cuit-input" placeholder="Ingrese el CUIT asociado a la licencia">
+                    </div>
+                    <div class="mb-3">
+                        <label for="license-key-input" class="form-label">Clave de Licencia</label>
+                        <input type="text" class="form-control" id="license-key-input" placeholder="Ingrese su clave de licencia">
+                    </div>
+                    <div id="license-status-message" class="mt-3">
+                    </div>
+                    <div class="modal-footer pb-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="btn-activar-licencia">Activar Licencia</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-confirmar-eliminar-licencia" tabindex="-1" aria-labelledby="modalEliminarLicenciaLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEliminarLicenciaLabel">Confirmar Eliminación de Licencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning"><strong>Atención:</strong> Esta acción desactivará el software. Necesitará una nueva clave para volver a activarlo.</div>
+                <p>Para confirmar, por favor escriba la palabra <strong id="palabra-confirmacion-licencia" class="text-danger"></strong> en el campo de abajo.</p>
+                <input type="text" class="form-control" id="input-confirmacion-licencia" autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminacion-final-licencia" disabled>Sí, Eliminar Licencia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-cambiar-pin" tabindex="-1" aria-labelledby="modalCambiarPinLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambiarPinLabel">Cambiar PIN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btn-close-cambiar-pin"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cambiar-pin-error" class="alert alert-danger d-none" role="alert"></div>
+                <form id="form-cambiar-pin" autocomplete="off">
+                    <input type="hidden" id="forcePinChange" name="forcePinChange" value="false">
+                    <div class="mb-3" id="current-pin-container">
+                        <label for="current_pin" class="form-label">PIN Actual</label>
+                        <input type="password" name="current_pin" class="form-control text-center" id="current_pin" required maxlength="4" pattern="\d{4}" autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_pin" class="form-label">Nuevo PIN (4 dígitos)</label>
+                        <input type="password" name="new_pin" class="form-control text-center" id="new_pin" required maxlength="4" pattern="\d{4}" autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_new_pin" class="form-label">Confirmar Nuevo PIN</label>
+                        <input type="password" name="confirm_new_pin" class="form-control text-center" id="confirm_new_pin" required maxlength="4" pattern="\d{4}" autocomplete="new-password">
+                    </div>
+                    <div class="mb-4">
+                        <label for="pin_hint" class="form-label">Pista para recordar el PIN (opcional)</label>
+                        <input type="text" name="pin_hint" class="form-control text-center" id="pin_hint" autocomplete="off">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="btn-submit-cambiar-pin">Actualizar PIN</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="btn-cancel-cambiar-pin">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100"></div>
+
+<footer class="text-center py-4">
+    <i class="fa-solid fa-square-poll-vertical text-muted small me-1"></i><small class="text-muted">Mi Balance v.1.0 © 2025 javanguz. Todos los derechos reservados.</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.client.js"></script>
+<%- typeof pageScripts !== 'undefined' ? pageScripts : '' %>
+</body>
+</html>
+
