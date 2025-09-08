@@ -568,24 +568,31 @@ padding: 0.25em 0.6em; }
     text-align: center;
     border-top: 1px solid var(--border-color);
     margin-bottom: 0.5rem;
+    margin-top: 3rem;
 }
 
 .side-nav-info small {
     font-size: 0.75rem;
     color: var(--on-surface-variant-color);
     display: block;
+    margin-bottom: 0.25rem;
 }
 
-.side-nav-info strong {
-    font-size: 0.85rem;
-    color: var(--on-surface-color);
+.side-nav-info small:not(:first-of-type) {
+    margin-top: 0.75rem;
+}
+
+.side-nav-info .user-data-badge {
+    background-color: #e9ecef !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.5em 0.8em;
     word-wrap: break-word;
-}
-
-.side-nav-info hr {
-    margin: 0.5rem 0;
-    border-color: var(--border-color);
-    border-top-style: solid;
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+    display: inline-block;
+    border-radius: 50px;
 }
 
 .settings-toggle-btn {

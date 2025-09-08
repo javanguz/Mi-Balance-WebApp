@@ -66,42 +66,15 @@ module.exports = function(requireLicense) {
     
     function gracefulRestart(req) {
         const server = req.app.get('server');
-        const connections = req.app.get('connections');
-    
-        if (!server) {
-            console.warn('No se pudo obtener la instancia del servidor. Usando process.exit() como fallback.');
-            setTimeout(() => process.exit(1), 500);
-            return;
-        }
-    
+        
         console.log('Iniciando cierre programado del servidor...');
     
-        if (connections) {
-            console.log(`Destruyendo ${connections.size} conexiones abiertas.`);
-            for (const connection of connections) {
-                connection.destroy();
-            }
-        }
-    
-        server.close((err) => {
-            if (err) {
-                console.error('Error durante el cierre del servidor HTTP:', err);
-                process.exit(1);
-                return;
-            }
-            console.log('Servidor HTTP cerrado.');
-            
-            db.close((dbErr) => {
-                if (dbErr) {
-                    console.error('Error al cerrar la base de datos:', dbErr.message);
-                } else {
-                    console.log('Base de datos cerrada.');
-                }
-                
-                console.log('Proceso finalizado. El gestor de procesos se encargará del reinicio.');
-                process.exit(1);
+        if (server) {
+            server.close(() => {
+                console.log('Servidor HTTP cerrado.');
+                process.exit(1); 
             });
-        });
+        }
     
         setTimeout(() => {
             console.error('El cierre del servidor tardó demasiado. Forzando salida.');
@@ -179,28 +152,37 @@ module.exports = function(requireLicense) {
     
     router.post('/database/local/restore', requireLicense, (req, res, next) => {
         const { backupFilePath } = req.body;
-        try {
-            if (!fs.existsSync(backupFilePath)) throw new Error('El archivo de respaldo no existe.');
-    
-            req.app.locals.maintenanceMode = true;
-            console.log("MODO MANTENIMIENTO ACTIVADO. La base de datos se cerrará para la restauración.");
-    
-            fs.copyFileSync(backupFilePath, path.resolve(__dirname, '../db/financiero.sqlite'));
-            
-            res.status(200).send(restartPageHtml);
-            
-            setTimeout(() => gracefulRestart(req), 500);
+        const dbPath = path.resolve(__dirname, '../db/financiero.sqlite');
 
-        } catch (error) {
-            req.app.locals.maintenanceMode = false;
-            console.error('Error al restaurar localmente:', error);
-            res.redirect('/settings/database?status=local_restore_error');
+        if (!fs.existsSync(backupFilePath)) {
+            return res.redirect('/settings/database?status=local_restore_error');
         }
+
+        req.app.locals.maintenanceMode = true;
+        console.log("MODO MANTENIMIENTO ACTIVADO. La base de datos se cerrará para la restauración.");
+
+        db.close((err) => {
+            if (err) {
+                console.error('Error al cerrar la base de datos antes de restaurar:', err.message);
+                req.app.locals.maintenanceMode = false;
+                return res.redirect('/settings/database?status=local_restore_error_db_close');
+            }
+
+            console.log('Base de datos cerrada para la restauración.');
+
+            try {
+                fs.copyFileSync(backupFilePath, dbPath);
+                res.status(200).send(restartPageHtml);
+                console.log('Restauración completa. Reiniciando el proceso...');
+                setTimeout(() => process.exit(1), 500);
+            } catch (copyError) {
+                console.error('Error al copiar el archivo de respaldo:', copyError);
+                req.app.locals.maintenanceMode = false;
+                res.status(500).send("<h1>Error Crítico</h1><p>No se pudo restaurar la base de datos. Reinicie la aplicación manualmente.</p>");
+            }
+        });
     });
 
-    // ===============================================================
-    // INICIO DE LA CORRECCIÓN: Ruta para restaurar desde archivo subido
-    // ===============================================================
     router.post('/database/local/upload-restore', requireLicense, upload.single('backupFile'), (req, res, next) => {
         const uploadedFile = req.file;
 
@@ -234,7 +216,6 @@ module.exports = function(requireLicense) {
             console.log('Base de datos cerrada para la restauración.');
 
             try {
-                // Se reemplaza renameSync por copyFileSync y unlinkSync para evitar el error EPERM
                 fs.copyFileSync(tempPath, dbPath);
                 fs.unlinkSync(tempPath);
                 
@@ -246,14 +227,10 @@ module.exports = function(requireLicense) {
             } catch (copyError) {
                 console.error('Error al copiar/eliminar el archivo de respaldo:', copyError);
                 req.app.locals.maintenanceMode = false;
-                res.status(500).send("<h1>Error Crítico</h1><p>No se pudo restaurar la base de datos debido a un error de archivo. Por favor, reinicie la aplicación manualmente.</p>");
-                setTimeout(() => process.exit(1), 500);
+                res.status(500).send("<h1>Error Crítico</h1><p>No se pudo restaurar la base de datos. Reinicie la aplicación manualmente.</p>");
             }
         });
     });
-    // ===============================================================
-    // FIN DE LA CORRECCIÓN
-    // ===============================================================
     
     router.post('/database/local/delete-backup', requireLicense, (req, res, next) => {
         try {
@@ -283,42 +260,50 @@ module.exports = function(requireLicense) {
         setTimeout(() => gracefulRestart(req), 100);
     });
     
-    router.get('/database/verify', requireLicense, (req, res) => {
-        res.render('database_verify_pin', {
-            title: 'Confirmar Eliminación',
-            error: null,
-            active_link: ''
-        });
-    });
-    
     router.post('/database/delete', requireLicense, (req, res, next) => {
         const { pin } = req.body;
         if (pin !== getConfig().APP_PIN) {
-            return res.render('database_verify_pin', {
-                title: 'Confirmar Eliminación',
-                error: 'PIN incorrecto. La operación ha sido cancelada.',
-                active_link: ''
-            });
+            // Redirige a la página anterior con un error en lugar de renderizar una nueva.
+            return res.redirect('/settings/database?status=reset_pin_error');
         }
         const dbPath = path.resolve(__dirname, '../db/financiero.sqlite');
     
         req.app.locals.maintenanceMode = true;
         console.log("MODO MANTENIMIENTO ACTIVADO. La base de datos se cerrará para el reseteo.");
     
-        fs.unlink(dbPath, (unlinkErr) => {
-            if (unlinkErr && unlinkErr.code !== 'ENOENT') {
-                console.error("Error al eliminar el archivo de la BD:", unlinkErr);
+        // 1. Cerrar la conexión a la base de datos primero.
+        db.close((err) => {
+            if (err) {
+                console.error('Error al cerrar la BD para el reseteo:', err.message);
                 req.app.locals.maintenanceMode = false;
-                return res.status(500).send('No se pudo eliminar el archivo de la base de datos.');
+                return res.status(500).send('<h1>Error Crítico</h1><p>No se pudo cerrar la base de datos para el reseteo. Reinicie la aplicación manualmente.</p>');
             }
-            try {
-                saveConfig({ APP_PIN: "1234", PIN_HINT: "" });
-                res.status(200).send(restartPageHtml);
-                gracefulRestart(req);
-            } catch (saveErr) {
-                req.app.locals.maintenanceMode = false;
-                next(saveErr);
-            }
+    
+            console.log('Base de datos cerrada para el reseteo.');
+    
+            // 2. Una vez cerrada, intentar eliminar el archivo.
+            fs.unlink(dbPath, (unlinkErr) => {
+                // ENOENT (Error NO ENtity) significa que el archivo no existe, lo cual es aceptable.
+                if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                    console.error("Error al eliminar el archivo de la BD:", unlinkErr);
+                    req.app.locals.maintenanceMode = false;
+                    return res.status(500).send('<h1>Error Crítico</h1><p>No se pudo eliminar el archivo de la base de datos porque está bloqueado. Reinicie la aplicación manualmente.</p>');
+                }
+                
+                console.log('Archivo de la base de datos eliminado.');
+    
+                // 3. Finalmente, resetear la configuración y reiniciar.
+                try {
+                    saveConfig({ APP_PIN: "1234", PIN_HINT: "" });
+                    res.status(200).send(restartPageHtml);
+                    // Salir del proceso para que el gestor (Nodemon/PM2) lo reinicie.
+                    setTimeout(() => process.exit(1), 500); 
+                } catch (saveErr) {
+                    console.error("Error al guardar config.json:", saveErr);
+                    req.app.locals.maintenanceMode = false;
+                    next(saveErr);
+                }
+            });
         });
     });
     

@@ -8,6 +8,14 @@
         margin-left: auto;
         margin-right: auto;
     }
+    /* NUEVO ESTILO PARA LA LISTA DE RESPALDOS */
+    .scrollable-backup-list {
+        max-height: 320px; /* Altura aproximada para 5 items */
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: .25rem;
+        padding: 0.5rem;
+    }
     @media (max-width: 992px) {
         .db-management-container {
             max-width: 100%;
@@ -28,15 +36,30 @@
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingLocal">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLocal">
-                    <i class="fa-solid fa-floppy-disk me-2"></i> Respaldos Locales
+                    <i class="fa-solid fa-floppy-disk me-2 fs-5"></i>
+                    <span class="fs-6 fw-bold">Respaldos Locales</span>
                 </button>
             </h2>
+            
             <div id="collapseLocal" class="accordion-collapse collapse show" data-bs-parent="#databaseManagementAccordion">
                 <div class="accordion-body">
+                    <div class="d-grid mt-2 mb-2 gap-2">
+                        <form action="/settings/database/local/backup" method="POST">
+                            <button type="submit" class="btn btn-success w-100" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
+                                <i class="fa-solid fa-save me-2"></i>Crear Respaldo Local Ahora
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr class="my-4">
+
                     <form id="local-settings-form">
+                        <h6 class="mt-2">Configuración</h6>
+                        <p class="text-muted small">
+                        Seleccione una carpeta donde se guardarán los respaldos y configure una modalidad de creación.
+                        </p>
                         <fieldset <%= !isLicensed ? 'disabled' : '' %>>
-                            <div class="mb-3">
-                                <label for="backupPath" class="form-label fw-bold">Ruta de la Carpeta de Respaldos</label>
+                            <div class="mb-4">
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fa-solid fa-folder-open"></i></span>
                                     <input type="text" name="backupPath" id="backupPath" class="form-control setting-input" value="<%= localSettings.path %>" required>
@@ -45,43 +68,41 @@
                                 <div id="path-test-result" class="form-text mt-2"></div>
                             </div>
 
-                            <div class="card p-3 mb-4">
                                 <fieldset id="backup-options-fieldset">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Modo de Respaldo</label>
+                                    <div class="mb-2">
                                         <div class="form-check">
                                             <input class="form-check-input setting-input" type="radio" name="mode" id="mode-manual-local" value="manual" <%= localSettings.mode === 'manual' ? 'checked' : '' %>>
                                             <label class="form-check-label" for="mode-manual-local">Manual</label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input setting-input" type="radio" name="mode" id="mode-startup-local" value="startup" <%= localSettings.mode === 'startup' ? 'checked' : '' %>>
-                                            <label class="form-check-label" for="mode-startup-local">Al iniciar el programa</label>
+                                            <label class="form-check-label" for="mode-startup-local">Automático al iniciar el programa</label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input setting-input" type="radio" name="mode" id="mode-daily-local" value="daily" <%= localSettings.mode === 'daily' ? 'checked' : '' %>>
-                                            <label class="form-check-label" for="mode-daily-local">Todos los días</label>
+                                            <label class="form-check-label" for="mode-daily-local">Automático todos los días</label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input setting-input" type="radio" name="mode" id="mode-weekdays-local" value="weekdays" <%= localSettings.mode === 'weekdays' ? 'checked' : '' %>>
-                                            <label class="form-check-label" for="mode-weekdays-local">Lunes a Viernes</label>
+                                            <label class="form-check-label" for="mode-weekdays-local">Automático los días hábiles</label>
                                         </div>
                                     </div>
                                     
                                     <div id="automatic-settings-local" class="row <%= localSettings.mode !== 'manual' ? '' : 'd-none' %>">
-                                        <div id="automatic-time-settings" class="col-md-6 mb-3 <%= ['daily', 'weekdays'].includes(localSettings.mode) ? '' : 'd-none' %>">
-                                            <label for="scheduleTimeLocal" class="form-label">Hora de respaldo (formato 24hs)</label>
+                                        <div id="automatic-time-settings" class="col-md-4 mb-3 <%= ['daily', 'weekdays'].includes(localSettings.mode) ? '' : 'd-none' %>">
+                                            <label for="scheduleTimeLocal" class="form-label">Hora de respaldo</label>
                                             <input type="time" name="scheduleTime" id="scheduleTimeLocal" class="form-control setting-input" value="<%= localSettings.scheduleTime || '04:00' %>">
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label for="retentionCountLocal" class="form-label">Copias a conservar</label>
                                             <input type="number" name="retentionCount" id="retentionCountLocal" class="form-control setting-input" value="<%= localSettings.retentionCount %>" min="1">
                                         </div>
                                     </div>
 
                                 </fieldset>
-                            </div>
+                      
                              <div class="d-grid">
-                                <button type="button" class="btn btn-primary btn-lg" id="btn-save-db-settings" disabled>
+                                <button type="button" class="btn btn-outline-primary w-50 mb-2" id="btn-save-db-settings" disabled>
                                     <i class="fa-solid fa-check me-2"></i>Guardar Configuración
                                 </button>
                             </div>
@@ -89,61 +110,54 @@
                     </form>
 
                     <hr class="my-4">
-                    
-                    <h5 class="mt-4">Acciones de Respaldo</h5>
 
-                    <div class="d-grid gap-2">
-                        <form action="/settings/database/local/backup" method="POST">
-                            <button type="submit" class="btn btn-success w-100" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
-                                <i class="fa-solid fa-save me-2"></i>Crear Respaldo Local Ahora
-                            </button>
-                        </form>
-
-                        <!-- INICIO DE LA MEJORA: Formulario para restaurar desde archivo -->
-                        <div class="card mt-3">
-                            <div class="card-body">
-                                <h6 class="card-title">Restaurar desde un archivo</h6>
-                                <p class="text-muted small">
-                                    Seleccione un archivo de respaldo (.sqlite) desde su equipo para restaurar la base de datos.
-                                    Esta acción reemplazará todos los datos actuales.
-                                </p>
-                                <form action="/settings/database/local/upload-restore" method="POST" enctype="multipart/form-data" id="form-upload-restore">
-                                    <fieldset <%= !isLicensed ? 'disabled' : '' %>>
-                                        <div class="input-group">
-                                            <input class="form-control" type="file" id="backupFile" name="backupFile" accept=".sqlite,.db">
-                                            <button class="btn btn-warning" type="button" id="btn-upload-restore" disabled data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-upload-restore">
-                                                <i class="fa-solid fa-upload me-2"></i>Importar y Restaurar
-                                            </button>
-                                        </div>
-                                        <div id="file-selection-feedback" class="form-text mt-1"></div>
-                                    </fieldset>
-                                </form>
+                    <!-- Formulario para restaurar desde archivo -->
+                    <h6 class="mt-4">Restaurar desde un archivo</h6>                    
+                        
+                    <p class="text-muted small">
+                        Seleccione un archivo de respaldo (.sqlite) desde su equipo para restaurar la base de datos. Esta acción reemplazará todos los datos actuales.
+                    </p>
+                    <form action="/settings/database/local/upload-restore" method="POST" enctype="multipart/form-data" id="form-upload-restore">
+                        <fieldset <%= !isLicensed ? 'disabled' : '' %>>
+                            <div class="input-group mb-2">
+                                <input class="form-control" type="file" id="backupFile" name="backupFile" accept=".sqlite,.db">
+                                <button class="btn btn-warning fw-regular" type="button" id="btn-upload-restore" disabled data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-upload-restore">
+                                    <i class="fa-solid fa-upload me-2"></i>Importar y Restaurar
+                                </button>
                             </div>
-                        </div>
-                        <!-- FIN DE LA MEJORA -->
-                    </div>
+                            <div id="file-selection-feedback" class="form-text mt-1"></div>
+                        </fieldset>
+                    </form>
+                    
+                    <hr class="my-4">
 
-
-                    <h5 class="mt-4">Respaldos Locales Disponibles</h5>
+                    <h6 class="mt-4">Respaldos Locales Disponibles</h6>
+                    <p class="text-muted small">
+                        Aquí se detallan los respaldos locales creados y ubicados en la carpeta configurada.
+                    </p>
                     <% if (localBackups.length > 0) { %>
-                        <ul class="list-group" id="backup-list">
-                          <% localBackups.forEach(file => { %>
-                            <% const safeFileId = `backup-item-${file.name.replace(/[^\w-]/g, '-')}` %>
-                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap" id="<%= safeFileId %>">
-                                <div>
-                                    <strong class="d-block"><%= file.name %></strong>
-                                    <small class="text-muted"><%= new Date(file.createdTime).toLocaleString('es-AR') %></small>
-                                </div>
-                                <div class="mt-2 mt-md-0">
-                                    <form action="/settings/database/local/restore" method="POST" class="d-inline" id="form-restore-local-<%= safeFileId %>">
-                                        <input type="hidden" name="backupFilePath" value="<%= file.path %>">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-restore-local-<%= safeFileId %>" <%= !isLicensed ? 'disabled' : '' %>>Restaurar</button>
-                                    </form>
-                                    <button type="button" class="btn btn-outline-danger btn-sm ms-2 btn-delete-backup" data-backup-path="<%= file.path %>" data-backup-id="<%= safeFileId %>" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion-respaldo" <%= !isLicensed ? 'disabled' : '' %>>Eliminar</button>
-                                </div>
-                            </li>
-                          <% }) %>
-                        </ul>
+                        <!-- INICIO DE LA MODIFICACIÓN: Contenedor para la lista con scroll -->
+                        <div class="<%= localBackups.length > 5 ? 'scrollable-backup-list' : '' %>">
+                            <ul class="list-group list-group-flush" id="backup-list">
+                              <% localBackups.forEach(file => { %>
+                                <% const safeFileId = `backup-item-${file.name.replace(/[^\w-]/g, '-')}` %>
+                                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap" id="<%= safeFileId %>">
+                                    <div>
+                                        <strong class="d-block"><%= file.name %></strong>
+                                        <small class="text-muted"><%= new Date(file.createdTime).toLocaleString('es-AR') %></small>
+                                    </div>
+                                    <div class="mt-2 mt-md-0">
+                                        <form action="/settings/database/local/restore" method="POST" class="d-inline" id="form-restore-local-<%= safeFileId %>">
+                                            <input type="hidden" name="backupFilePath" value="<%= file.path %>">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-restore-local-<%= safeFileId %>" <%= !isLicensed ? 'disabled' : '' %>>Restaurar</button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline-danger btn-sm ms-2 btn-delete-backup" data-backup-path="<%= file.path %>" data-backup-id="<%= safeFileId %>" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion-respaldo" <%= !isLicensed ? 'disabled' : '' %>>Eliminar</button>
+                                    </div>
+                                </li>
+                              <% }) %>
+                            </ul>
+                        </div>
+                        <!-- FIN DE LA MODIFICACIÓN -->
                     <% } else { %>
                         <p class="text-muted">No se encontraron respaldos en la carpeta local especificada.</p>
                     <% } %>
@@ -153,14 +167,15 @@
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingDanger">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDanger">
-                    <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Zona de Alto Riesgo
+                    <i class="fa-solid fa-triangle-exclamation me-2 text-danger fs-5"></i> 
+                    <span class="text-danger fs-6 fw-bold">Zona de Alto Riesgo</span>
                 </button>
             </h2>
             <div id="collapseDanger" class="accordion-collapse collapse" data-bs-parent="#databaseManagementAccordion">
                 <div class="accordion-body">
-                    <h5 class="card-title text-danger">Resetear Aplicación</h5>
-                    <p>Esta opción elimina permanentemente todos los datos locales. <strong>No afecta tus respaldos.</strong></p>
-                    <a href="/settings/database/verify" class="btn btn-danger <%= !isLicensed ? 'disabled' : '' %>">Resetear Base de Datos Local</a>
+                    <h6 class="card-title text-danger mb-2">Resetear Aplicación</h6>
+                    <p>Esta opción elimina permanentemente todos los datos locales y configuración personalizada reiniciando la aplicación a su estado incial. <strong>No afecta los respaldos existentes.</strong></p>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-reseteo" <%= !isLicensed ? 'disabled' : '' %>>Resetear Base de Datos Local</button>
                 </div>
             </div>
         </div>
@@ -171,7 +186,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabelRestauracion">Confirmar Restauración</h5>
+                <h6 class="modal-title" id="modalLabelRestauracion">Confirmar Restauración</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -205,5 +220,32 @@
     </div>
 </div>
 
+<!-- Modal para Confirmar Reseteo de BD -->
+<div class="modal fade" id="modal-confirmar-reseteo" tabindex="-1" aria-labelledby="modalLabelReseteo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="/settings/database/delete" method="POST" id="form-reset-database">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabelReseteo">Confirmar Reseteo de Aplicación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger"><strong>¡Atención!</strong> Esta acción eliminará permanentemente todos los datos y restablecerá el PIN a "1234".</div>
+                    <p>Para confirmar, ingrese su PIN de acceso actual.</p>
+                    <div class="pin-form-wrapper mx-auto" style="max-width: 220px;">
+                        <label for="pin-reset" class="form-label visually-hidden">PIN Actual</label>
+                        <input type="password" name="pin" class="form-control form-control-lg text-center" id="pin-reset" required maxlength="4" pattern="\d{4}" autofocus autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger" id="btn-confirmar-reseteo-final">Sí, Resetear Aplicación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <% pageScripts = '<script src="/js/database_management.client.js"></script>' %>
 <%- include('layout/_footer') %>
+

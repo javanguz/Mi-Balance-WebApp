@@ -116,7 +116,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             const seedModalidades = () => {
                 const stmt = db.prepare("INSERT OR IGNORE INTO modalidades (nombre, es_editable) VALUES (?, ?)");
  stmt.run('Efectivo', 0);
-                const editableModalidades = ['Transferencia', 'Billetera/Qr', 'Tarjeta'];
+                const editableModalidades = ['Transferencia', 'Billetera Vitual', 'Tarjeta C/D'];
                 editableModalidades.forEach(mod => stmt.run(mod, 1));
  stmt.finalize((err) => {
                     if (!err) {

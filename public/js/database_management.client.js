@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const dbPage = document.querySelector('.db-management-container');
     if (!dbPage) return;
 
-    // --- INICIO DE LA MEJORA: Lógica para mostrar toasts de estado desde la URL ---
+    // --- Lógica para mostrar toasts de estado desde la URL ---
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
     if (status) {
@@ -13,18 +13,27 @@ document.addEventListener('DOMContentLoaded', function () {
             local_restore_error_no_file: { text: 'No se seleccionó ningún archivo para restaurar.', type: 'danger' },
             local_restore_error_invalid_file: { text: 'El archivo seleccionado no es válido. Debe ser .sqlite.', type: 'danger' },
             local_restore_error_db_close: { text: 'Error al preparar la base de datos para la restauración.', type: 'danger' },
-            local_restore_error_generic: { text: 'Ocurrió un error inesperado durante la restauración.', type: 'danger' }
+            local_restore_error_generic: { text: 'Ocurrió un error inesperado durante la restauración.', type: 'danger' },
+            reset_pin_error: { text: 'PIN incorrecto. La operación ha sido cancelada.', type: 'danger' }
         };
         if (messages[status]) {
             window.showToast(messages[status].text, messages[status].type);
+            
+            // Si el error fue por el PIN, reabrimos el modal de reseteo.
+            if (status === 'reset_pin_error') {
+                const resetModalEl = document.getElementById('modal-confirmar-reseteo');
+                if (resetModalEl) {
+                    const resetModal = new bootstrap.Modal(resetModalEl);
+                    resetModal.show();
+                }
+            }
+            
             // Limpiar la URL para que el mensaje no se muestre de nuevo al recargar
             urlParams.delete('status');
             const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
             window.history.replaceState({}, document.title, newUrl);
         }
     }
-    // --- FIN DE LA MEJORA ---
-
     // --- Elementos del DOM ---
     const isLicensed = dbPage.dataset.isLicensed === 'true';
     if (!isLicensed) return; // No inicializar lógica si no hay licencia
@@ -159,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         btnConfirmarRestauracionFinal.addEventListener('click', () => {
             if (formToRestore) {
-                // Muestra un indicador de carga antes de enviar el formulario
                 btnConfirmarRestauracionFinal.disabled = true;
                 btnConfirmarRestauracionFinal.innerHTML = `
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -232,5 +240,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-});
 
+    // --- Lógica para el nuevo modal de reseteo ---
+    const modalConfirmarReseteoEl = document.getElementById('modal-confirmar-reseteo');
+    if (modalConfirmarReseteoEl) {
+        const pinInput = modalConfirmarReseteoEl.querySelector('#pin-reset');
+        const form = modalConfirmarReseteoEl.querySelector('#form-reset-database');
+        const submitBtn = modalConfirmarReseteoEl.querySelector('#btn-confirmar-reseteo-final');
+
+        modalConfirmarReseteoEl.addEventListener('shown.bs.modal', () => {
+            if(pinInput) pinInput.focus();
+        });
+
+        modalConfirmarReseteoEl.addEventListener('hidden.bs.modal', () => {
+            if(pinInput) pinInput.value = '';
+        });
+
+        if (form) {
+            form.addEventListener('submit', () => {
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Procesando...
+                    `;
+                }
+            });
+        }
+    }
+});

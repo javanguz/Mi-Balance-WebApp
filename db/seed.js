@@ -32,7 +32,6 @@ const db = new sqlite3.Database('./db/financiero.sqlite', (err) => {
 });
 
 // --- LISTAS DE DATOS PARA PERSONALIZAR ---
-// Estas listas ahora coinciden con las definidas en db/database.js para mantener la consistencia.
 const nombresArg = ['Juan', 'Lucía', 'Martín', 'Sofía', 'Federico', 'Mariana', 'Carlos', 'Valentina', 'Lautaro', 'Camila', 'Agustín', 'Julieta', 'Tomás', 'Paula', 'Ramiro', 'Josefina', 'Matías', 'Milagros', 'Emiliano', 'Rocío'];
 const apellidosArg = ['González', 'Rodríguez', 'Fernández', 'Pérez', 'Gómez', 'Díaz', 'Sánchez', 'Romero', 'López', 'Martínez', 'Acosta', 'Silva', 'Ruiz', 'Álvarez', 'Torres', 'Navarro', 'Domínguez', 'Moreno', 'Molina', 'Castro'];
 const empresasArg = [
@@ -41,13 +40,7 @@ const empresasArg = [
 ];
 const descripcionesVenta = ["Venta de mercadería", "Servicio de consultoría", "Adelanto por proyecto", "Factura A-001", "Servicio de mantenimiento"];
 const descripcionesPago = ["Pago factura servicios", "Compra de insumos", "Adelanto a proveedor", "Pago alquiler oficina", "Factura 1234"];
-
-// ACTUALIZACIÓN: Se utilizan las mismas categorías que en database.js
-const categoriasCliente = ["Ventas web", "Ventas mostrador", "Servicios"];
-const categoriasProveedor = ["Agua, luz y gas", "Sueldos y cs. soc.", "Comestibles", "Gastos varios", "Impuestos", "Alquileres"];
-// ACTUALIZACIÓN: Se utilizan las mismas modalidades que en database.js
 const modalidades = ['Efectivo', 'Transferencia', 'Billetera/Qr', 'Tarjeta'];
-
 
 // --- FUNCIONES AUXILIARES PARA GENERAR DATOS ---
 const generarCUIT = () => `20${faker.string.numeric(8)}${faker.string.numeric(1)}`;
@@ -59,24 +52,16 @@ const generarEmail = (nombre) => `${nombre.toLowerCase().replace(/[^a-z0-9]/g, '
 db.serialize(async () => {
     console.log('Limpiando datos antiguos de clientes, proveedores y movimientos...');
     
-    // Habilitar claves foráneas
     db.run("PRAGMA foreign_keys = ON;");
 
-    // NOTA: La creación de tablas y el sembrado de categorías/modalidades por defecto
-    // ya no se realiza aquí. Se asume que la base de datos ya está inicializada
-    // por la aplicación principal (db/database.js).
-    // Esto evita inconsistencias y duplicación de lógica.
-
-    // Limpia solo los datos de prueba, manteniendo las categorías y modalidades base.
     db.run(`DELETE FROM movimientos`);
     db.run(`DELETE FROM clientes`);
     db.run(`DELETE FROM proveedores`);
-    db.run(`DELETE FROM sqlite_sequence WHERE name IN ('movimientos')`); // Resetea autoincrement de movimientos
+    db.run(`DELETE FROM sqlite_sequence WHERE name IN ('movimientos')`);
 
     console.log('Creando nuevos datos de prueba...');
 
     // --- 1. OBTENER IDs DE CATEGORÍAS EXISTENTES ---
-    // Se leen las categorías que la aplicación ya creó para usarlas en los datos de prueba.
     const clienteCategoriaIds = await new Promise((resolve, reject) => {
         db.all("SELECT id FROM categorias WHERE tipo = 'cliente' AND es_editable = 1", (err, rows) => err ? reject(err) : resolve(rows.map(r => r.id)));
     });
@@ -94,29 +79,41 @@ db.serialize(async () => {
     const clientesCreados = [];
     const proveedoresCreados = [];
 
-    // --- 2. CREACIÓN DE CLIENTES ---
+    // --- 2. CREACIÓN DE CLIENTES (CON NOMBRES ÚNICOS) ---
+    const nombresClientesUsados = new Set();
     const insertCliente = db.prepare(`INSERT INTO clientes (id, nombre, cuit, telefono, email, observaciones, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?)`);
     for (let i = 0; i < CANTIDAD_CLIENTES; i++) {
-        const nombreCompleto = `${faker.helpers.arrayElement(nombresArg)} ${faker.helpers.arrayElement(apellidosArg)}`;
+        let nombreCompleto;
+        do {
+            nombreCompleto = `${faker.helpers.arrayElement(nombresArg)} ${faker.helpers.arrayElement(apellidosArg)}`;
+        } while (nombresClientesUsados.has(nombreCompleto));
+        
+        nombresClientesUsados.add(nombreCompleto);
         const clienteId = 10001 + i;
         const categoriaId = faker.helpers.arrayElement(clienteCategoriaIds);
         insertCliente.run(clienteId, nombreCompleto, generarCUIT(), generarTelefono(), generarEmail(nombreCompleto), `Cliente registrado el ${faker.date.past({years: 2}).toLocaleDateString('es-AR')}`, categoriaId);
         clientesCreados.push({ id: clienteId, categoria_id: categoriaId });
     }
     insertCliente.finalize();
-    console.log(`-> ${CANTIDAD_CLIENTES} clientes creados.`);
+    console.log(`-> ${CANTIDAD_CLIENTES} clientes únicos creados.`);
 
-    // --- 3. CREACIÓN DE PROVEEDORES ---
+    // --- 3. CREACIÓN DE PROVEEDORES (CON NOMBRES ÚNICOS) ---
+    const nombresProveedoresUsados = new Set();
     const insertProveedor = db.prepare(`INSERT INTO proveedores (id, nombre, cuit, telefono, email, observaciones, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?)`);
     for (let i = 0; i < CANTIDAD_PROVEEDORES; i++) {
-        const nombreEmpresa = faker.helpers.arrayElement(empresasArg);
+        let nombreEmpresa;
+        do {
+            nombreEmpresa = faker.helpers.arrayElement(empresasArg);
+        } while (nombresProveedoresUsados.has(nombreEmpresa));
+
+        nombresProveedoresUsados.add(nombreEmpresa);
         const proveedorId = 20001 + i;
         const categoriaId = faker.helpers.arrayElement(proveedorCategoriaIds);
         insertProveedor.run(proveedorId, nombreEmpresa, generarCUIT(), generarTelefono(), generarEmail(nombreEmpresa), `Proveedor de ${faker.commerce.department()}`, categoriaId);
         proveedoresCreados.push({ id: proveedorId, categoria_id: categoriaId });
     }
     insertProveedor.finalize();
-    console.log(`-> ${CANTIDAD_PROVEEDORES} proveedores creados.`);
+    console.log(`-> ${CANTIDAD_PROVEEDORES} proveedores únicos creados.`);
 
     // --- 4. CREACIÓN DE MOVIMIENTOS ---
     const insertMovimiento = db.prepare(`INSERT INTO movimientos (descripcion, monto, tipo, fecha, modalidad, entidad_id, entidad_tipo, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -143,7 +140,7 @@ db.serialize(async () => {
             faker.helpers.arrayElement(modalidades), 
             entidad.id, 
             entidad_tipo,
-            entidad.categoria_id // Se usa la categoría de la entidad
+            entidad.categoria_id
         );
     }
     
