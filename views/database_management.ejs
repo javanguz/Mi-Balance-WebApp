@@ -39,7 +39,7 @@
                                 <label for="backupPath" class="form-label fw-bold">Ruta de la Carpeta de Respaldos</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fa-solid fa-folder-open"></i></span>
-                                    <input type="text" name="backupPath" id="backupPath" class="form-control" value="<%= localSettings.path %>" required>
+                                    <input type="text" name="backupPath" id="backupPath" class="form-control setting-input" value="<%= localSettings.path %>" required>
                                     <button class="btn btn-link" type="button" id="btn-verify-path">Verificar</button>
                                 </div>
                                 <div id="path-test-result" class="form-text mt-2"></div>
@@ -67,18 +67,16 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- INICIO DE LA CORRECCIÓN: Se agrupan los campos en una fila -->
                                     <div id="automatic-settings-local" class="row <%= localSettings.mode !== 'manual' ? '' : 'd-none' %>">
                                         <div id="automatic-time-settings" class="col-md-6 mb-3 <%= ['daily', 'weekdays'].includes(localSettings.mode) ? '' : 'd-none' %>">
                                             <label for="scheduleTimeLocal" class="form-label">Hora de respaldo (formato 24hs)</label>
-                                            <input type="time" name="scheduleTime" id="scheduleTimeLocal" class="form-control setting-input" value="<%= localSettings.scheduleTime || '12:00' %>">
+                                            <input type="time" name="scheduleTime" id="scheduleTimeLocal" class="form-control setting-input" value="<%= localSettings.scheduleTime || '04:00' %>">
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="retentionCountLocal" class="form-label">Copias a conservar</label>
                                             <input type="number" name="retentionCount" id="retentionCountLocal" class="form-control setting-input" value="<%= localSettings.retentionCount %>" min="1">
                                         </div>
                                     </div>
-                                    <!-- FIN DE LA CORRECCIÓN -->
 
                                 </fieldset>
                             </div>
@@ -91,14 +89,40 @@
                     </form>
 
                     <hr class="my-4">
+                    
+                    <h5 class="mt-4">Acciones de Respaldo</h5>
 
-                    <form action="/settings/database/local/backup" method="POST">
-                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
+                    <div class="d-grid gap-2">
+                        <form action="/settings/database/local/backup" method="POST">
+                            <button type="submit" class="btn btn-success w-100" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
                                 <i class="fa-solid fa-save me-2"></i>Crear Respaldo Local Ahora
                             </button>
+                        </form>
+
+                        <!-- INICIO DE LA MEJORA: Formulario para restaurar desde archivo -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Restaurar desde un archivo</h6>
+                                <p class="text-muted small">
+                                    Seleccione un archivo de respaldo (.sqlite) desde su equipo para restaurar la base de datos.
+                                    Esta acción reemplazará todos los datos actuales.
+                                </p>
+                                <form action="/settings/database/local/upload-restore" method="POST" enctype="multipart/form-data" id="form-upload-restore">
+                                    <fieldset <%= !isLicensed ? 'disabled' : '' %>>
+                                        <div class="input-group">
+                                            <input class="form-control" type="file" id="backupFile" name="backupFile" accept=".sqlite,.db">
+                                            <button class="btn btn-warning" type="button" id="btn-upload-restore" disabled data-bs-toggle="modal" data-bs-target="#modal-confirmar-restauracion" data-form-id="form-upload-restore">
+                                                <i class="fa-solid fa-upload me-2"></i>Importar y Restaurar
+                                            </button>
+                                        </div>
+                                        <div id="file-selection-feedback" class="form-text mt-1"></div>
+                                    </fieldset>
+                                </form>
+                            </div>
                         </div>
-                    </form>
+                        <!-- FIN DE LA MEJORA -->
+                    </div>
+
 
                     <h5 class="mt-4">Respaldos Locales Disponibles</h5>
                     <% if (localBackups.length > 0) { %>
@@ -183,4 +207,3 @@
 
 <% pageScripts = '<script src="/js/database_management.client.js"></script>' %>
 <%- include('layout/_footer') %>
-

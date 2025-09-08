@@ -4,9 +4,14 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const db = require('../db/database');
 const localBackupHelper = require('../utils/localBackupHelper');
 const crypto = require('crypto');
+const multer = require('multer');
+
+// Configurar multer para guardar el archivo en el directorio temporal del sistema
+const upload = multer({ dest: os.tmpdir() });
 
 const LICENSE_FILE_PATH = path.resolve(__dirname, '../license.json');
 const SECRET_KEY = 'tu-clave-secreta-para-generar-licencias'; 
@@ -59,12 +64,6 @@ module.exports = function(requireLicense) {
         return crypto.createHash('sha256').update(username + cuit + SECRET_KEY).digest('hex').substring(0, 32);
     }
     
-    /**
-     * Cierra de forma segura todas las conexiones y el servidor, y luego
-     * finaliza el proceso. El gestor de procesos (nodemon/pm2) se encargará
-     * de reiniciarlo.
-     * @param {object} req - El objeto de la solicitud Express.
-     */
     function gracefulRestart(req) {
         const server = req.app.get('server');
         const connections = req.app.get('connections');
@@ -198,6 +197,63 @@ module.exports = function(requireLicense) {
             res.redirect('/settings/database?status=local_restore_error');
         }
     });
+
+    // ===============================================================
+    // INICIO DE LA CORRECCIÓN: Ruta para restaurar desde archivo subido
+    // ===============================================================
+    router.post('/database/local/upload-restore', requireLicense, upload.single('backupFile'), (req, res, next) => {
+        const uploadedFile = req.file;
+
+        if (!uploadedFile) {
+            return res.redirect('/settings/database?status=local_restore_error_no_file');
+        }
+
+        const tempPath = uploadedFile.path;
+        const originalName = uploadedFile.originalname;
+        const fileExtension = path.extname(originalName).toLowerCase();
+        
+        if (fileExtension !== '.sqlite') {
+            fs.unlink(tempPath, (err) => {
+                if (err) console.error("Error al eliminar archivo temporal inválido:", err);
+            });
+            return res.redirect('/settings/database?status=local_restore_error_invalid_file');
+        }
+
+        req.app.locals.maintenanceMode = true;
+        console.log("MODO MANTENIMIENTO ACTIVADO. La base de datos se cerrará para la restauración desde archivo.");
+        const dbPath = path.resolve(__dirname, '../db/financiero.sqlite');
+
+        db.close((err) => {
+            if (err) {
+                console.error('Error al cerrar la base de datos antes de restaurar:', err.message);
+                req.app.locals.maintenanceMode = false;
+                fs.unlink(tempPath, () => {});
+                return res.redirect('/settings/database?status=local_restore_error_db_close');
+            }
+            
+            console.log('Base de datos cerrada para la restauración.');
+
+            try {
+                // Se reemplaza renameSync por copyFileSync y unlinkSync para evitar el error EPERM
+                fs.copyFileSync(tempPath, dbPath);
+                fs.unlinkSync(tempPath);
+                
+                res.status(200).send(restartPageHtml);
+                
+                console.log('Restauración desde archivo subido completa. Reiniciando el proceso...');
+                setTimeout(() => process.exit(1), 500);
+
+            } catch (copyError) {
+                console.error('Error al copiar/eliminar el archivo de respaldo:', copyError);
+                req.app.locals.maintenanceMode = false;
+                res.status(500).send("<h1>Error Crítico</h1><p>No se pudo restaurar la base de datos debido a un error de archivo. Por favor, reinicie la aplicación manualmente.</p>");
+                setTimeout(() => process.exit(1), 500);
+            }
+        });
+    });
+    // ===============================================================
+    // FIN DE LA CORRECCIÓN
+    // ===============================================================
     
     router.post('/database/local/delete-backup', requireLicense, (req, res, next) => {
         try {
@@ -320,3 +376,4 @@ module.exports = function(requireLicense) {
 
     return router;
 };
+

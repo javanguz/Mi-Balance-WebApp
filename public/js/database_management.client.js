@@ -2,6 +2,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const dbPage = document.querySelector('.db-management-container');
     if (!dbPage) return;
 
+    // --- INICIO DE LA MEJORA: Lógica para mostrar toasts de estado desde la URL ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    if (status) {
+        const messages = {
+            local_backup_success: { text: 'Respaldo local creado con éxito.', type: 'success' },
+            local_backup_error: { text: 'Error al crear el respaldo local.', type: 'danger' },
+            local_restore_error: { text: 'Error al restaurar desde la lista.', type: 'danger' },
+            local_restore_error_no_file: { text: 'No se seleccionó ningún archivo para restaurar.', type: 'danger' },
+            local_restore_error_invalid_file: { text: 'El archivo seleccionado no es válido. Debe ser .sqlite.', type: 'danger' },
+            local_restore_error_db_close: { text: 'Error al preparar la base de datos para la restauración.', type: 'danger' },
+            local_restore_error_generic: { text: 'Ocurrió un error inesperado durante la restauración.', type: 'danger' }
+        };
+        if (messages[status]) {
+            window.showToast(messages[status].text, messages[status].type);
+            // Limpiar la URL para que el mensaje no se muestre de nuevo al recargar
+            urlParams.delete('status');
+            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+    // --- FIN DE LA MEJORA ---
+
     // --- Elementos del DOM ---
     const isLicensed = dbPage.dataset.isLicensed === 'true';
     if (!isLicensed) return; // No inicializar lógica si no hay licencia
@@ -136,6 +159,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         btnConfirmarRestauracionFinal.addEventListener('click', () => {
             if (formToRestore) {
+                // Muestra un indicador de carga antes de enviar el formulario
+                btnConfirmarRestauracionFinal.disabled = true;
+                btnConfirmarRestauracionFinal.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Restaurando...
+                `;
                 formToRestore.submit();
             }
         });
@@ -174,4 +203,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // --- Lógica para Restaurar desde archivo subido ---
+    const formUploadRestore = document.getElementById('form-upload-restore');
+    if (formUploadRestore) {
+        const backupFileInput = document.getElementById('backupFile');
+        const btnUploadRestore = document.getElementById('btn-upload-restore');
+        const fileFeedback = document.getElementById('file-selection-feedback');
+
+        backupFileInput.addEventListener('change', () => {
+            if (backupFileInput.files.length > 0) {
+                const file = backupFileInput.files[0];
+                const fileName = file.name;
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+
+                if (fileExtension === 'sqlite') {
+                    fileFeedback.textContent = `Archivo seleccionado: ${fileName}`;
+                    fileFeedback.className = 'form-text mt-1 text-success';
+                    btnUploadRestore.disabled = false;
+                } else {
+                    fileFeedback.textContent = 'Por favor, seleccione un archivo .sqlite válido.';
+                    fileFeedback.className = 'form-text mt-1 text-danger';
+                    btnUploadRestore.disabled = true;
+                }
+            } else {
+                fileFeedback.textContent = '';
+                btnUploadRestore.disabled = true;
+            }
+        });
+    }
 });
+
