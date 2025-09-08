@@ -3,9 +3,7 @@
 <% if (proveedorSeleccionado) { %>
     <div class="card" style="width: fit-content;">
         <div class="card-body">
-            <h6 class="card-title text-muted mb-3" style="font-size: 1.10rem;">Historial reciente de
-                 <span class="nombre-proveedor-destacado text-egreso fw-bold"><%= proveedorSeleccionado.nombre %></span>
-            </h6>
+            <h6 class="card-title text-muted mb-4" style="font-size: 1.10rem;"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--egresos-color);"></i>Historial reciente del Proveedor</h6>
 
             <% if (movimientos && movimientos.length > 0) { %>
                 <div class="table-responsive">
@@ -56,8 +54,8 @@
             <% } %>
 
             <div class="text-end mt-1">
-                <a href="/registro?busqueda=<%= proveedorSeleccionado.id %>" class="btn btn-link" title="Ver todos los movimientos de este proveedor en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver todo el historial
+                <a href="/registro?busqueda=<%= proveedorSeleccionado.id %>" class="btn btn-link" title="Se visualizarán todos los movimientos de este proveedor en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver más...
                 </a>
             </div>
         </div>

@@ -1,0 +1,257 @@
+<%- include('layout/_header', { title: title }) %>
+
+<style>
+    .manual-container {
+        max-width: 900px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 25px 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid #e5e5ea;
+    }
+    .manual-container h1, .manual-container h2, .manual-container h3 {
+        color: #1c1c1e;
+        border-bottom: 2px solid #e5e5ea;
+        padding-bottom: 10px;
+        margin-top: 30px;
+    }
+    .manual-container h1 {
+        text-align: center;
+        font-size: 2.5em;
+        color: #2060DF;
+        border: none;
+    }
+    .manual-container h1 .icon {
+        font-size: 0.9em;
+    }
+    .manual-container code {
+        background-color: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        color: #d63384;
+    }
+    .icon {
+        margin-right: 12px;
+        width: 24px;
+        text-align: center;
+    }
+    .text-ingreso { color: #4EA72E; }
+    .text-egreso { color: #ce3838; }
+    .text-registro { color: #0070C0; }
+    .text-reportes { color: #e79333; }
+    .text-tablero { color: #5D6B89; }
+    .text-opciones { color: #636366; }
+
+    .feature-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-left: 5px solid #2060DF;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+    }
+    .feature-box h4 {
+        margin-top: 0;
+        color: #2060DF;
+    }
+    .manual-container ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    .manual-container ul li {
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 10px;
+    }
+    .manual-container ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4EA72E;
+        font-weight: bold;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+</style>
+
+<div class="manual-container">
+    <h1><i class="fa-solid fa-square-poll-vertical icon"></i>Mi Balance: Manual de Usuario</h1>
+
+    <p style="text-align: center; font-size: 1.1em; color: #6c757d;">Tu guía completa para dominar la gestión de tus finanzas.</p>
+
+    <!-- PRIMEROS PASOS -->
+    <h2><i class="fa-solid fa-rocket icon"></i>Primeros Pasos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-key icon"></i>Acceso y Configuración Inicial</h4>
+        <p>Al abrir la aplicación por primera vez, te recibirán con una pantalla de acceso. Aquí te explicamos cómo empezar.</p>
+        <ul>
+            <li><strong>PIN Inicial:</strong> Tu PIN de seguridad por defecto es <code>1234</code>. Ingrésalo para acceder al panel principal.</li>
+            <li><strong>Activación de Licencia:</strong> Para desbloquear todas las funciones, es crucial activar tu licencia. Sin ella, la aplicación funcionará en modo de solo lectura.
+                <ol style="padding-left: 20px;">
+                    <li>Navega a <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> y selecciona <span class="text-opciones"><i class="fa-solid fa-key icon"></i><strong>Licencia</strong></span>.</li>
+                    <li>Completa los campos con tu <strong>Nombre de Usuario</strong>, <strong>CUIT</strong> y la <strong>Clave de Licencia</strong> que se te proporcionó.</li>
+                    <li>Haz clic en "Activar". Si los datos son correctos, la aplicación se reiniciará con todas sus funciones habilitadas.</li>
+                </ol>
+            </li>
+            <li><strong>Cambio de PIN (Recomendado):</strong> Por tu seguridad, cambia el PIN inicial cuanto antes.
+                <ol style="padding-left: 20px;">
+                    <li>Ve a <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> ➔ <span class="text-opciones"><i class="fa-solid fa-lock-open icon"></i><strong>Cambiar PIN</strong></span>.</li>
+                    <li>Ingresa el PIN actual (<code>1234</code> si es el primero).</li>
+                    <li>Establece tu nuevo PIN de 4 dígitos y confírmalo.</li>
+                    <li>Opcionalmente, puedes añadir una **pista** para recordarlo. Esta pista solo será visible si tienes una licencia activa.</li>
+                </ol>
+            </li>
+        </ul>
+        <div class="alert alert-warning">
+            <strong><i class="fa-solid fa-triangle-exclamation"></i> ¿Olvidaste tu PIN?</strong> Si tienes una licencia activa, puedes usar la opción "Restablecer PIN con licencia" en la pantalla de acceso para recuperarlo. Esto restablecerá tu PIN a <code>1234</code> para que puedas volver a ingresar y cambiarlo.
+        </div>
+    </div>
+
+    <!-- TABLERO -->
+    <h2><i class="fa-solid fa-chart-simple icon text-tablero"></i>El Tablero Principal</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-gauge-high icon"></i>Tu Centro de Control Financiero</h4>
+        <p>La pantalla de <strong>Inicio</strong> te da una visión panorámica y en tiempo real de la salud de tu negocio.</p>
+        <ul>
+            <li><strong>Selector de Período Dinámico:</strong> Elige la granularidad de tus datos: <strong>Anual, Mensual o Semanal</strong>. Utiliza las flechas <i class="fa-solid fa-chevron-left"></i> y <i class="fa-solid fa-chevron-right"></i> o desliza en tu dispositivo móvil para navegar rápidamente entre períodos.</li>
+            <li><strong>Tarjetas de Balance:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><span class="text-ingreso"><i class="fa-solid fa-circle-up icon"></i><strong>Ingresos</strong></span>: Muestra el total de ingresos del período.</li>
+                    <li><span class="text-tablero"><i class="fa-solid fa-scale-balanced icon"></i><strong>Balance</strong></span>: El resultado neto (Ingresos - Egresos).</li>
+                    <li><span class="text-egreso"><i class="fa-solid fa-circle-down icon"></i><strong>Egresos</strong></span>: El total de egresos del período.</li>
+                </ul>
+                <p>Cada tarjeta incluye una comparación porcentual con el período anterior (ej. vs mes pasado), ayudándote a identificar tendencias.</p>
+            </li>
+            <li><strong>Gráfico Histórico General:</strong> Un gráfico de barras compara tus ingresos y egresos de los últimos 12 períodos, dándote una perspectiva a largo plazo.</li>
+            <li><strong>Ranking del Período:</strong> Analiza rápidamente tu rendimiento con un Top 5 de:
+                <ul style="padding-left: 20px;">
+                    <li><strong>Clientes:</strong> Quiénes te generan más ingresos.</li>
+                    <li><strong>Proveedores:</strong> En quiénes estás invirtiendo más.</li>
+                    <li><strong>Ingresos:</strong> Qué categorías de venta son las más rentables.</li>
+                    <li><strong>Egresos:</strong> Cuáles son tus principales categorías de gastos.</li>
+                </ul>
+            </li>
+            <li><strong>Histórico Personalizado:</strong> Utiliza el buscador <i class="fa-solid fa-magnifying-glass"></i> para seleccionar un cliente, proveedor o categoría específica y visualiza su evolución financiera en un gráfico dedicado.</li>
+        </ul>
+    </div>
+
+    <!-- INGRESOS -->
+    <h2><i class="fa-solid fa-circle-up icon text-ingreso"></i>Gestión de Ingresos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-cash-register icon"></i>Carga de Ventas y Cobranzas</h4>
+        <p>Registra cualquier entrada de dinero de forma precisa y organizada.</p>
+        <ol style="padding-left: 20px;">
+            <li><strong>Selecciona el Cliente:</strong> Usa el campo de búsqueda para encontrar a tu cliente por nombre, ID o CUIT. Puedes escribir <code>*</code> para verlos a todos. Si el cliente no existe, puedes crearlo desde el menú <span class="text-opciones"><i class="fa-solid fa-sliders icon"></i><strong>Gestionar</strong></span>.</li>
+            <li><strong>Completa los Datos del Movimiento:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Fecha:</strong> Por defecto, se establece la fecha actual.</li>
+                    <li><strong>Importe:</strong> El monto total del ingreso.</li>
+                    <li><strong>Modalidad:</strong> Elige cómo se recibió el pago (Efectivo, Transferencia, etc.). Si no encuentras una opción, puedes añadirla seleccionando "Otra...".</li>
+                    <li><strong>Categoría:</strong> Asigna una categoría para clasificar el ingreso (ej. "Ventas web", "Servicios").</li>
+                    <li><strong>Comentario (Opcional):</strong> Añade cualquier nota relevante de hasta 140 caracteres.</li>
+                </ul>
+            </li>
+            <li><strong>Función de Crédito <i class="fa-solid fa-toggle-on"></i>:</strong> Si necesitas registrar una nota de crédito, una devolución o un ajuste que reste saldo al cliente, activa el interruptor <strong>"Crédito"</strong>. El monto se guardará como un valor negativo en el historial.</li>
+            <li><strong>Confirmar:</strong> Haz clic en <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-check"></i> Confirmar Movimiento</button> para guardar el registro.</li>
+        </ol>
+        <div class="alert alert-info">
+            <strong><i class="fa-solid fa-clock-rotate-left"></i> Historial a la Vista:</strong> Al seleccionar un cliente, su historial de movimientos más recientes aparecerá a la derecha de la pantalla, dándote contexto inmediato.
+        </div>
+    </div>
+
+    <!-- EGRESOS -->
+    <h2><i class="fa-solid fa-circle-down icon text-egreso"></i>Gestión de Egresos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-receipt icon"></i>Carga de Pagos y Compras</h4>
+        <p>El proceso es idéntico al de los ingresos, pero enfocado en las salidas de dinero.</p>
+        <ol style="padding-left: 20px;">
+            <li><strong>Selecciona el Proveedor:</strong> Busca a tu proveedor por nombre, ID o CUIT.</li>
+            <li><strong>Completa los Datos:</strong> Fecha, Importe, Modalidad, Categoría y Comentario.</li>
+            <li><strong>Función de Crédito <i class="fa-solid fa-toggle-on"></i>:</strong> Activa este interruptor si un proveedor te ha emitido una nota de crédito o te ha hecho una devolución. Esto registrará como un importe que resta al saldo del proveedor y una entrada de dinero a tu favor.</li>
+            <li><strong>Confirmar Movimiento:</strong> Guarda el registro.</li>
+        </ol>
+    </div>
+
+    <!-- REGISTRO -->
+    <h2><i class="fa-solid fa-table-list icon text-registro"></i>Registro de Movimientos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-book-bookmark icon"></i>Tu Libro Contable Digital</h4>
+        <p>El Registro es el corazón de tu contabilidad, donde puedes consultar, filtrar y gestionar cada movimiento.</p>
+        <ul>
+            <li><strong>Filtros por Tipo:</strong> Usa los botones para visualizar rápidamente lo que necesitas.</li>
+            <li><strong>Búsqueda y Fechas:</strong> Utiliza los campos de la parte superior para filtrar por un rango de fechas específico o buscar por texto libre (nombre, categoría, modalidad, etc.).</li>
+            <li><strong>Paginación:</strong> Si tienes muchos movimientos, la tabla se dividirá en páginas para una navegación más cómoda.</li>
+            <li><strong>Gestión de Movimientos:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><span class="text-opciones"><i class="fa-solid fa-pencil icon"></i><strong>Editar:</strong></span> Modifica cualquier dato de un movimiento. Serás redirigido a la pantalla de carga correspondiente.</li>
+                    <li><span class="text-egreso"><i class="fa-solid fa-trash icon"></i><strong>Eliminar:</strong></span> Borra un movimiento de forma permanente (requiere confirmación).</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- REPORTES -->
+    <h2><i class="fa-solid fa-file-lines icon text-reportes"></i>Reportes e Informes</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-magnifying-glass-chart icon"></i>Análisis Profundo de tus Datos</h4>
+        <p>Transforma tus datos en información valiosa con el potente motor de reportes.</p>
+        <ul>
+            <li><strong>Configuración del Reporte:</strong>
+                <ol style="padding-left: 20px;">
+                    <li><strong>Período:</strong> Define el rango de fechas a analizar.</li>
+                    <li><strong>Filtros Avanzados:</strong> Acota los resultados por <strong>Tipo</strong> (ingresos/egresos), <strong>Categoría</strong>, <strong>Modalidad</strong>, <strong>Clientes</strong> o <strong>Proveedores</strong> específicos. Puedes seleccionar múltiples valores en cada filtro.</li>
+                    <li><strong>Vista Detallada vs. Resumida:</strong>
+                        <ul style="padding-left: 20px;">
+                            <li><strong>Detallado:</strong> Si no eliges un nivel de resumen, obtendrás un listado de cada movimiento individual que coincida con tus filtros.</li>
+                            <li><strong>Resumido:</strong> Agrupa tus datos hasta en tres niveles jerárquicos. Por ejemplo, puedes ver tus gastos <em>Por Mes</em> ➔ <em>Por Categoría</em> ➔ <em>Por Proveedor</em>.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </li>
+            <li><strong>Generación y Exportación:</strong>
+                <ul style="padding-left: 20px;">
+                    <li>Haz clic en <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-cogs"></i> Generar Reporte</button> para ver los resultados en pantalla.</li>
+                    <li>Usa el botón <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-download"></i> Exportar</button> para descargar tu informe en formato **PDF** o **Excel**.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <h2><i class="fa-solid fa-database icon text-opciones"></i>Ajustes y Mantenimiento</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-shield-halved icon"></i>Mantén tu Información Segura</h4>
+        <p>Accede desde <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> ➔ <span class="text-opciones"><i class="fa-solid fa-database icon"></i><strong>Base de Datos</strong></span>.</p>
+        <ul>
+            <li><strong>Respaldos Locales (Backups):</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Configuración:</strong> Define una carpeta en tu PC para guardar las copias de seguridad. Puedes programar respaldos automáticos **al iniciar la app**, **diariamente** o solo los **días hábiles** a una hora específica.</li>
+                    <li><strong>Creación Manual:</strong> Crea un respaldo en cualquier momento con el botón <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-save"></i> Crear Respaldo Ahora</button>.</li>
+                    <li><strong>Restauración:</strong> Restaura tu base de datos a un estado anterior seleccionando un respaldo de la lista o subiendo un archivo <code>.sqlite</code> desde tu equipo. <strong>Esta acción reemplazará todos los datos actuales</strong>.</li>
+                </ul>
+            </li>
+            <li><strong>Zona de Alto Riesgo:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Resetear Aplicación:</strong> Esta función <strong>elimina permanentemente toda tu información</strong> y restaura la aplicación a su estado inicial, incluyendo el PIN por defecto (<code>1234</code>). <strong>Requiere tu PIN actual como confirmación y es irreversible</strong>.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<%- include('layout/_footer') %>

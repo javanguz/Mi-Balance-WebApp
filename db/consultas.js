@@ -57,14 +57,15 @@ const getMovimientosPaginados = async (filtros) => {
 
     if (busqueda) {
         const busquedaLike = `%${busqueda}%`;
-        // Búsqueda más eficiente, evitando conversiones de tipo innecesarias.
+        // Búsqueda más eficiente, incluyendo el campo entidad_id.
         whereClauses.push(`(
             entidad_nombre LIKE ? OR
             descripcion LIKE ? OR
             modalidad LIKE ? OR
-            categoria_nombre LIKE ?
+            categoria_nombre LIKE ? OR
+            entidad_id LIKE ?
         )`);
-        params.push(busquedaLike, busquedaLike, busquedaLike, busquedaLike);
+        params.push(busquedaLike, busquedaLike, busquedaLike, busquedaLike, busquedaLike);
     }
 
     if (fechaDesde && fechaHasta) {

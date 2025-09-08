@@ -155,7 +155,7 @@ router.get('/reset-pin-1234', (req, res, next) => {
         const config = getConfig();
         config.APP_PIN = "1234";
         saveConfig(config);
-        res.status(200).send('<h1>El PIN ha sido restablecido a 1234 con éxito.</h1><a href="/login">Volver al Login</a>');
+        res.status(200).send('<h1>El PIN ha sido restablecido con éxito.</h1><a href="/login">Volver al Login</a>');
     } catch (error) {
         next(error);
     }

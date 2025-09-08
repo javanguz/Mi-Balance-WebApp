@@ -125,8 +125,8 @@
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <div>
                             <% if (!movimiento) { %>
-                                <button type="button" class="btn btn-link" id="btn-restablecer-formulario" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restablecer" <%= !isLicensed ? 'disabled' : '' %>>
-                                    <i class="fa-solid fa-undo me-1"></i>Limpiar formulario
+                                <button type="button" class="btn btn-link" id="btn-restablecer-formulario" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Al reiniciar el formulario se perderán todos los datos ingresados no guardados." <%= !isLicensed ? 'disabled' : '' %>>
+                                    <i class="fa-solid fa-undo me-1"></i>Restablecer
                                 </button>
                             <% } %>
                         </div>

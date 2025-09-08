@@ -7,8 +7,8 @@ const { faker } = require('@faker-js/faker');
 // Modifica los valores en esta sección para personalizar los datos de prueba.
 // =============================================================================
 
-const CANTIDAD_CLIENTES = 5;       // Define cuántos clientes de prueba se crearán.
-const CANTIDAD_PROVEEDORES = 5;     // Define cuántos proveedores de prueba se crearán.
+const CANTIDAD_CLIENTES = 7;       // Define cuántos clientes de prueba se crearán.
+const CANTIDAD_PROVEEDORES = 7;     // Define cuántos proveedores de prueba se crearán.
 const CANTIDAD_MOVIMIENTOS = 4000;   // Define cuántos movimientos (ingresos/egresos) se crearán.
 
 // Define el rango de fechas para los movimientos.

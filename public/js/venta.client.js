@@ -1,6 +1,13 @@
+//--- public\js\venta.client.js
+
 document.addEventListener('DOMContentLoaded', function () {
     const ventaPage = document.getElementById('form-cargar-venta');
     if (ventaPage) {
+        
+        // Se inicializan todos los tooltips de Bootstrap en la página.
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+                
         // --- INYECCIÓN DE ESTILOS PARA LA BARRA DE DESPLAZAMIENTO ---
         const style = document.createElement('style');
         style.textContent = `.scrollable-results { max-height: 300px; overflow-y: auto; }`;
@@ -1095,11 +1102,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         checkFormValidity();
-        const btnConfirmarRestablecerFinal = document.getElementById('btn-confirmar-restablecer-final');
-        if (btnConfirmarRestablecerFinal) {
-            btnConfirmarRestablecerFinal.addEventListener('click', () => {
+        
+        const btnRestablecerFormulario = document.getElementById('btn-restablecer-formulario');
+        if (btnRestablecerFormulario) {
+            btnRestablecerFormulario.addEventListener('click', (e) => {
+                e.preventDefault();
                 restablecerFormularioCompleto();
-                modalConfirmarRestablecer.hide();
             });
         }
     }

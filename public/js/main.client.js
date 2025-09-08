@@ -48,16 +48,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // 2. Lógica para el menú lateral y superior (Side Nav / Top Nav)
+    const sideNav = document.querySelector('.side-nav');
     const settingsToggleBtn = document.getElementById('settings-toggle-btn');
     const settingsSubmenu = document.getElementById('settings-submenu');
-    if (settingsToggleBtn && settingsSubmenu) {
+    if (settingsToggleBtn && settingsSubmenu && sideNav) {
         settingsToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsSubmenu.classList.toggle('show');
+            sideNav.classList.toggle('submenu-active'); // Activa/desactiva la clase en el contenedor principal
         });
         document.addEventListener('click', (e) => {
             if (!settingsSubmenu.contains(e.target) && !settingsToggleBtn.contains(e.target)) {
                 settingsSubmenu.classList.remove('show');
+                sideNav.classList.remove('submenu-active'); // Siempre quita la clase al cerrar
             }
         });
     }

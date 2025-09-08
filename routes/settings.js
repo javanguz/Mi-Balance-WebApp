@@ -81,6 +81,19 @@ module.exports = function(requireLicense) {
             process.exit(1);
         }, 5000).unref();
     }
+
+    // ===============================================================
+    // INICIO DE LA MODIFICACIÓN: Nueva ruta para el manual de usuario
+    // ===============================================================
+    router.get('/manual', (req, res) => {
+        res.render('manual', {
+            title: 'Manual de Usuario',
+            active_link: 'settings',
+        });
+    });
+    // ===============================================================
+    // FIN DE LA MODIFICACIÓN
+    // ===============================================================
     
     router.get('/database', (req, res, next) => {
         try {
@@ -361,4 +374,3 @@ module.exports = function(requireLicense) {
 
     return router;
 };
-

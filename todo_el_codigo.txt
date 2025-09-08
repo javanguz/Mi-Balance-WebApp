@@ -376,14 +376,15 @@ const getMovimientosPaginados = async (filtros) => {
 
     if (busqueda) {
         const busquedaLike = `%${busqueda}%`;
-        // Búsqueda más eficiente, evitando conversiones de tipo innecesarias.
+        // Búsqueda más eficiente, incluyendo el campo entidad_id.
         whereClauses.push(`(
             entidad_nombre LIKE ? OR
             descripcion LIKE ? OR
             modalidad LIKE ? OR
-            categoria_nombre LIKE ?
+            categoria_nombre LIKE ? OR
+            entidad_id LIKE ?
         )`);
-        params.push(busquedaLike, busquedaLike, busquedaLike, busquedaLike);
+        params.push(busquedaLike, busquedaLike, busquedaLike, busquedaLike, busquedaLike);
     }
 
     if (fechaDesde && fechaHasta) {
@@ -563,6 +564,7 @@ module.exports = {
     getClientes,
     getProveedores
 };
+
 
 ----- C:\Users\Javier\Desktop\finanzas-app\db\database.js -----
 // =================================================================
@@ -1835,6 +1837,7 @@ padding: 0.25em 0.6em; }
     width: 100%;
     background-color: var(--surface-color);
     border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
     padding: 0.5rem;
     z-index: 1040;
@@ -1850,11 +1853,23 @@ padding: 0.25em 0.6em; }
     transform: translateY(0);
 }
 
+.side-nav .side-nav-links,
+.side-nav .navbar-brand-side {
+    transition: filter 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.side-nav.submenu-active .side-nav-links,
+.side-nav.submenu-active .navbar-brand-side {
+    filter: blur(3px) brightness(1);
+    opacity: 0.6;
+    pointer-events: none; /* Evita que se pueda hacer clic en los elementos del fondo */
+}
+
 .submenu-link {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.75rem 1rem; /* Aumentado para más espacio */
+    padding: 0.5rem 1rem; /* Aumentado para más espacio */
     border-radius: var(--border-radius);
     text-decoration: none;
     color: #636366;
@@ -1976,7 +1991,7 @@ body {
 }
 
 /* Pantallas medianas y grandes (Tablets y Escritorio) */
-@media (min-width: 850px) {
+@media (min-width: 916px) {
     .btn-scroll-top {
         bottom: 20px; /* Menos espacio en la parte inferior para la vista de escritorio */
     }
@@ -2809,16 +2824,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // 2. Lógica para el menú lateral y superior (Side Nav / Top Nav)
+    const sideNav = document.querySelector('.side-nav');
     const settingsToggleBtn = document.getElementById('settings-toggle-btn');
     const settingsSubmenu = document.getElementById('settings-submenu');
-    if (settingsToggleBtn && settingsSubmenu) {
+    if (settingsToggleBtn && settingsSubmenu && sideNav) {
         settingsToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsSubmenu.classList.toggle('show');
+            sideNav.classList.toggle('submenu-active'); // Activa/desactiva la clase en el contenedor principal
         });
         document.addEventListener('click', (e) => {
             if (!settingsSubmenu.contains(e.target) && !settingsToggleBtn.contains(e.target)) {
                 settingsSubmenu.classList.remove('show');
+                sideNav.classList.remove('submenu-active'); // Siempre quita la clase al cerrar
             }
         });
     }
@@ -5739,7 +5757,7 @@ router.get('/reset-pin-1234', (req, res, next) => {
         const config = getConfig();
         config.APP_PIN = "1234";
         saveConfig(config);
-        res.status(200).send('<h1>El PIN ha sido restablecido a 1234 con éxito.</h1><a href="/login">Volver al Login</a>');
+        res.status(200).send('<h1>El PIN ha sido restablecido con éxito.</h1><a href="/login">Volver al Login</a>');
     } catch (error) {
         next(error);
     }
@@ -6416,7 +6434,7 @@ module.exports = function(requireLicense) {
             
             if (returnToRegistro === 'true') return res.json({ success: true, redirectTo: `/registro?${returnQuery}&update=success` });
             if (returnToReport === 'true') return res.json({ success: true, redirectTo: `/reportes/generar?${returnQuery}&update=success` });
-            res.json({ success: true, message: 'Egreso actualizado con éxito' });
+            res.json({ success: true, message: 'Movimiento actualizado con éxito' });
         } catch (err) {
             next(err);
         }
@@ -6435,7 +6453,7 @@ module.exports = function(requireLicense) {
             const sql = `INSERT INTO movimientos (fecha, monto, tipo, entidad_id, entidad_tipo, modalidad, categoria_id, descripcion) VALUES (?, ?, ?, ?, 'proveedor', ?, ?, ?)`;
             await Consultas.dbRunAsync(sql, [fecha, monto, tipo, proveedor_id, modalidad, categoria_id, comentarios]);
             
-            res.status(201).json({ success: true, message: 'Egreso guardado con éxito.' });
+            res.status(201).json({ success: true, message: 'Movimiento registrado con éxito.' });
         } catch (err) {
             next(err);
         }
@@ -7503,6 +7521,19 @@ module.exports = function(requireLicense) {
             process.exit(1);
         }, 5000).unref();
     }
+
+    // ===============================================================
+    // INICIO DE LA MODIFICACIÓN: Nueva ruta para el manual de usuario
+    // ===============================================================
+    router.get('/manual', (req, res) => {
+        res.render('manual', {
+            title: 'Manual de Usuario',
+            active_link: 'settings',
+        });
+    });
+    // ===============================================================
+    // FIN DE LA MODIFICACIÓN
+    // ===============================================================
     
     router.get('/database', (req, res, next) => {
         try {
@@ -7785,7 +7816,6 @@ module.exports = function(requireLicense) {
 };
 
 
-
 ----- C:\Users\Javier\Desktop\finanzas-app\routes\venta.js -----
 // routes/venta.js
 
@@ -7864,7 +7894,7 @@ module.exports = function(requireLicense) {
             
             if (returnToRegistro === 'true') return res.json({ success: true, redirectTo: `/registro?${returnQuery}&update=success` });
             if (returnToReport === 'true') return res.json({ success: true, redirectTo: `/reportes/generar?${returnQuery}&update=success` });
-            res.json({ success: true, message: 'Venta actualizada con éxito' });
+            res.json({ success: true, message: 'Movimiento actualizado con éxito' });
         } catch (err) {
             next(err);
         }
@@ -7880,7 +7910,7 @@ module.exports = function(requireLicense) {
             
             const sql = `INSERT INTO movimientos (fecha, monto, tipo, entidad_id, entidad_tipo, modalidad, categoria_id, descripcion) VALUES (?, ?, ?, ?, 'cliente', ?, ?, ?)`;
             await Consultas.dbRunAsync(sql, [fecha, monto, tipo, cliente_id, modalidad, categoria_id, comentarios]);
-            res.status(201).json({ success: true, message: 'Venta guardada con éxito.' });
+            res.status(201).json({ success: true, message: 'Movimiento registrado con éxito.' });
         } catch (err) {
             next(err);
         }
@@ -8417,7 +8447,7 @@ module.exports = {
                     <div class="d-grid mt-2 mb-2 gap-2">
                         <form action="/settings/database/local/backup" method="POST">
                             <button type="submit" class="btn btn-success w-100" id="btn-create-backup" <%= !isLicensed ? 'disabled' : '' %>>
-                                <i class="fa-solid fa-save me-2"></i>Crear Respaldo Local Ahora
+                                <i class="fa-solid fa-save me-2"></i>Crear Respaldo Ahora
                             </button>
                         </form>
                     </div>
@@ -9371,10 +9401,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 ----- C:\Users\Javier\Desktop\finanzas-app\views\layout\_footer.ejs -----
-<%#* views/layout/_footer.ejs %>
+<!--- views/layout/_footer.ejs -->
 
 </div> 
 
+<!-------------------------------->
+<!--- barra navegacion INFERIOR -->
+<!-------------------------------->
 <nav class="bottom-nav">
     <a href="/inicio" class="bottom-nav-link <%= (locals.active_link && active_link === 'inicio') ? 'active' : '' %>">
         <i class="fa-solid fa-chart-simple"></i>
@@ -9398,25 +9431,37 @@ document.addEventListener('DOMContentLoaded', () => {
     </a>
 </nav>
 
-
+<!-------------------------------------->
+<!--- menú hamburguesa barra superior -->
+<!-------------------------------------->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="main-menu" style="width: 280px;">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title">Menú</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body d-flex flex-column">
-        <div class="d-grid">
-            <a href="/logout" class="btn btn-outline-danger"><i class="fa-solid fa-sign-out-alt fa-fw me-2"></i>Cerrar Sesión</a>
-        </div>
-        <div class="mt-auto pt-3 text-center border-top">
-             <small class="text-muted d-block" style="font-size: 0.8rem;">Usuario</small>
-             <strong class="text-muted d-block" style="font-size: 0.9rem; word-wrap: break-word;"><%= username %></strong>
-             <hr class="my-2">
-             <small class="text-muted d-block" style="font-size: 0.8rem;">CUIT</small>
-             <strong class="text-muted" style="font-size: 0.9rem; word-wrap: break-word;"><%= cuit %></strong>
+
+    <div class="offcanvas-body d-flex flex-column p-3">
+                <a href="/settings/manual" class="submenu-link">
+            <i class="fa-solid fa-circle-question fa-fw"></i>
+            <span>Manual de Ayuda</span>
+        </a>
+                <div class="submenu-divider my-2"></div>
+        <a href="/logout" class="submenu-link text-danger">
+            <i class="fa-solid fa-sign-out-alt fa-fw"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+
+        <div class="side-nav-info mt-auto">
+            <div class="text-center">
+                <small>Usuario</small>
+                <span class="badge user-data-badge text-dark"><%= username %></span>
+                <small>CUIT</small>
+                <span class="badge user-data-badge text-dark"><%= cuit %></span>
+            </div>
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="modal-licencia" tabindex="-1" aria-labelledby="modalLicenciaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -9539,7 +9584,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </html>
 
 
-
 ----- C:\Users\Javier\Desktop\finanzas-app\views\layout\_header.ejs -----
 <%#* views/layout/_header.ejs %>
 
@@ -9607,6 +9651,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid fa-database fa-fw"></i>
                     <span>Base de Datos</span>
                 </a>
+                <a href="/settings/manual" class="submenu-link">
+                    <i class="fa-solid fa-circle-question fa-fw"></i>
+                    <span>Manual de Ayuda</span>
+                </a>
                 <a href="#" class="submenu-link" data-bs-toggle="modal" data-bs-target="#modal-licencia">
                     <i class="fa-solid fa-key fa-fw"></i>
                     <span>Licencia</span>
@@ -9647,7 +9695,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </nav>
 
 <div class="main-container">
-
 
 
 ----- C:\Users\Javier\Desktop\finanzas-app\views\login.ejs -----
@@ -9859,6 +9906,266 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+----- C:\Users\Javier\Desktop\finanzas-app\views\manual.ejs -----
+<%- include('layout/_header', { title: title }) %>
+
+<style>
+    .manual-container {
+        max-width: 900px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 25px 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid #e5e5ea;
+    }
+    .manual-container h1, .manual-container h2, .manual-container h3 {
+        color: #1c1c1e;
+        border-bottom: 2px solid #e5e5ea;
+        padding-bottom: 10px;
+        margin-top: 30px;
+    }
+    .manual-container h1 {
+        text-align: center;
+        font-size: 2.5em;
+        color: #2060DF;
+        border: none;
+    }
+    .manual-container h1 .icon {
+        font-size: 0.9em;
+    }
+    .manual-container code {
+        background-color: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        color: #d63384;
+    }
+    .icon {
+        margin-right: 12px;
+        width: 24px;
+        text-align: center;
+    }
+    .text-ingreso { color: #4EA72E; }
+    .text-egreso { color: #ce3838; }
+    .text-registro { color: #0070C0; }
+    .text-reportes { color: #e79333; }
+    .text-tablero { color: #5D6B89; }
+    .text-opciones { color: #636366; }
+
+    .feature-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-left: 5px solid #2060DF;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+    }
+    .feature-box h4 {
+        margin-top: 0;
+        color: #2060DF;
+    }
+    .manual-container ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    .manual-container ul li {
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 10px;
+    }
+    .manual-container ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4EA72E;
+        font-weight: bold;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+</style>
+
+<div class="manual-container">
+    <h1><i class="fa-solid fa-square-poll-vertical icon"></i>Mi Balance: Manual de Usuario</h1>
+
+    <p style="text-align: center; font-size: 1.1em; color: #6c757d;">Tu guía completa para dominar la gestión de tus finanzas.</p>
+
+    <!-- PRIMEROS PASOS -->
+    <h2><i class="fa-solid fa-rocket icon"></i>Primeros Pasos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-key icon"></i>Acceso y Configuración Inicial</h4>
+        <p>Al abrir la aplicación por primera vez, te recibirán con una pantalla de acceso. Aquí te explicamos cómo empezar.</p>
+        <ul>
+            <li><strong>PIN Inicial:</strong> Tu PIN de seguridad por defecto es <code>1234</code>. Ingrésalo para acceder al panel principal.</li>
+            <li><strong>Activación de Licencia:</strong> Para desbloquear todas las funciones, es crucial activar tu licencia. Sin ella, la aplicación funcionará en modo de solo lectura.
+                <ol style="padding-left: 20px;">
+                    <li>Navega a <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> y selecciona <span class="text-opciones"><i class="fa-solid fa-key icon"></i><strong>Licencia</strong></span>.</li>
+                    <li>Completa los campos con tu <strong>Nombre de Usuario</strong>, <strong>CUIT</strong> y la <strong>Clave de Licencia</strong> que se te proporcionó.</li>
+                    <li>Haz clic en "Activar". Si los datos son correctos, la aplicación se reiniciará con todas sus funciones habilitadas.</li>
+                </ol>
+            </li>
+            <li><strong>Cambio de PIN (Recomendado):</strong> Por tu seguridad, cambia el PIN inicial cuanto antes.
+                <ol style="padding-left: 20px;">
+                    <li>Ve a <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> ➔ <span class="text-opciones"><i class="fa-solid fa-lock-open icon"></i><strong>Cambiar PIN</strong></span>.</li>
+                    <li>Ingresa el PIN actual (<code>1234</code> si es el primero).</li>
+                    <li>Establece tu nuevo PIN de 4 dígitos y confírmalo.</li>
+                    <li>Opcionalmente, puedes añadir una **pista** para recordarlo. Esta pista solo será visible si tienes una licencia activa.</li>
+                </ol>
+            </li>
+        </ul>
+        <div class="alert alert-warning">
+            <strong><i class="fa-solid fa-triangle-exclamation"></i> ¿Olvidaste tu PIN?</strong> Si tienes una licencia activa, puedes usar la opción "Restablecer PIN con licencia" en la pantalla de acceso para recuperarlo. Esto restablecerá tu PIN a <code>1234</code> para que puedas volver a ingresar y cambiarlo.
+        </div>
+    </div>
+
+    <!-- TABLERO -->
+    <h2><i class="fa-solid fa-chart-simple icon text-tablero"></i>El Tablero Principal</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-gauge-high icon"></i>Tu Centro de Control Financiero</h4>
+        <p>La pantalla de <strong>Inicio</strong> te da una visión panorámica y en tiempo real de la salud de tu negocio.</p>
+        <ul>
+            <li><strong>Selector de Período Dinámico:</strong> Elige la granularidad de tus datos: <strong>Anual, Mensual o Semanal</strong>. Utiliza las flechas <i class="fa-solid fa-chevron-left"></i> y <i class="fa-solid fa-chevron-right"></i> o desliza en tu dispositivo móvil para navegar rápidamente entre períodos.</li>
+            <li><strong>Tarjetas de Balance:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><span class="text-ingreso"><i class="fa-solid fa-circle-up icon"></i><strong>Ingresos</strong></span>: Muestra el total de ingresos del período.</li>
+                    <li><span class="text-tablero"><i class="fa-solid fa-scale-balanced icon"></i><strong>Balance</strong></span>: El resultado neto (Ingresos - Egresos).</li>
+                    <li><span class="text-egreso"><i class="fa-solid fa-circle-down icon"></i><strong>Egresos</strong></span>: El total de egresos del período.</li>
+                </ul>
+                <p>Cada tarjeta incluye una comparación porcentual con el período anterior (ej. vs mes pasado), ayudándote a identificar tendencias.</p>
+            </li>
+            <li><strong>Gráfico Histórico General:</strong> Un gráfico de barras compara tus ingresos y egresos de los últimos 12 períodos, dándote una perspectiva a largo plazo.</li>
+            <li><strong>Ranking del Período:</strong> Analiza rápidamente tu rendimiento con un Top 5 de:
+                <ul style="padding-left: 20px;">
+                    <li><strong>Clientes:</strong> Quiénes te generan más ingresos.</li>
+                    <li><strong>Proveedores:</strong> En quiénes estás invirtiendo más.</li>
+                    <li><strong>Ingresos:</strong> Qué categorías de venta son las más rentables.</li>
+                    <li><strong>Egresos:</strong> Cuáles son tus principales categorías de gastos.</li>
+                </ul>
+            </li>
+            <li><strong>Histórico Personalizado:</strong> Utiliza el buscador <i class="fa-solid fa-magnifying-glass"></i> para seleccionar un cliente, proveedor o categoría específica y visualiza su evolución financiera en un gráfico dedicado.</li>
+        </ul>
+    </div>
+
+    <!-- INGRESOS -->
+    <h2><i class="fa-solid fa-circle-up icon text-ingreso"></i>Gestión de Ingresos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-cash-register icon"></i>Carga de Ventas y Cobranzas</h4>
+        <p>Registra cualquier entrada de dinero de forma precisa y organizada.</p>
+        <ol style="padding-left: 20px;">
+            <li><strong>Selecciona el Cliente:</strong> Usa el campo de búsqueda para encontrar a tu cliente por nombre, ID o CUIT. Puedes escribir <code>*</code> para verlos a todos. Si el cliente no existe, puedes crearlo desde el menú <span class="text-opciones"><i class="fa-solid fa-sliders icon"></i><strong>Gestionar</strong></span>.</li>
+            <li><strong>Completa los Datos del Movimiento:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Fecha:</strong> Por defecto, se establece la fecha actual.</li>
+                    <li><strong>Importe:</strong> El monto total del ingreso.</li>
+                    <li><strong>Modalidad:</strong> Elige cómo se recibió el pago (Efectivo, Transferencia, etc.). Si no encuentras una opción, puedes añadirla seleccionando "Otra...".</li>
+                    <li><strong>Categoría:</strong> Asigna una categoría para clasificar el ingreso (ej. "Ventas web", "Servicios").</li>
+                    <li><strong>Comentario (Opcional):</strong> Añade cualquier nota relevante de hasta 140 caracteres.</li>
+                </ul>
+            </li>
+            <li><strong>Función de Crédito <i class="fa-solid fa-toggle-on"></i>:</strong> Si necesitas registrar una nota de crédito, una devolución o un ajuste que *reste* saldo al cliente, activa el interruptor <strong>"Crédito"</strong>. El monto se guardará como un valor negativo en el historial.</li>
+            <li><strong>Confirmar:</strong> Haz clic en <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-check"></i> Confirmar Movimiento</button> para guardar el registro.</li>
+        </ol>
+        <div class="alert alert-info">
+            <strong><i class="fa-solid fa-clock-rotate-left"></i> Historial a la Vista:</strong> Al seleccionar un cliente, su historial de movimientos más recientes aparecerá a la derecha de la pantalla, dándote contexto inmediato.
+        </div>
+    </div>
+
+    <!-- EGRESOS -->
+    <h2><i class="fa-solid fa-circle-down icon text-egreso"></i>Gestión de Egresos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-receipt icon"></i>Carga de Pagos y Compras</h4>
+        <p>El proceso es idéntico al de los ingresos, pero enfocado en las salidas de dinero.</p>
+        <ol style="padding-left: 20px;">
+            <li><strong>Selecciona el Proveedor:</strong> Busca a tu proveedor por nombre, ID o CUIT.</li>
+            <li><strong>Completa los Datos:</strong> Fecha, Importe, Modalidad, Categoría y Comentario.</li>
+            <li><strong>Función de Crédito <i class="fa-solid fa-toggle-on"></i>:</strong> Activa este interruptor si un proveedor te ha emitido una nota de crédito o te ha hecho una devolución. Esto registrará un "egreso negativo" (una entrada de dinero) a tu favor.</li>
+            <li><strong>Confirmar Movimiento:</strong> Guarda el registro.</li>
+        </ol>
+    </div>
+
+    <!-- REGISTRO -->
+    <h2><i class="fa-solid fa-table-list icon text-registro"></i>Registro de Movimientos</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-book-bookmark icon"></i>Tu Libro Contable Digital</h4>
+        <p>El Registro es el corazón de tu contabilidad, donde puedes consultar, filtrar y gestionar cada movimiento.</p>
+        <ul>
+            <li><strong>Filtros por Tipo:</strong> Usa los botones para visualizar rápidamente lo que necesitas.</li>
+            <li><strong>Búsqueda y Fechas:</strong> Utiliza los campos de la parte superior para filtrar por un rango de fechas específico o buscar por texto libre (nombre, categoría, modalidad, etc.).</li>
+            <li><strong>Paginación:</strong> Si tienes muchos movimientos, la tabla se dividirá en páginas para una navegación más cómoda.</li>
+            <li><strong>Gestión de Movimientos:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><span class="text-opciones"><i class="fa-solid fa-pencil icon"></i><strong>Editar:</strong></span> Modifica cualquier dato de un movimiento. Serás redirigido a la pantalla de carga correspondiente.</li>
+                    <li><span class="text-egreso"><i class="fa-solid fa-trash icon"></i><strong>Eliminar:</strong></span> Borra un movimiento de forma permanente (requiere confirmación).</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- REPORTES -->
+    <h2><i class="fa-solid fa-file-lines icon text-reportes"></i>Reportes e Informes</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-magnifying-glass-chart icon"></i>Análisis Profundo de tus Datos</h4>
+        <p>Transforma tus datos en información valiosa con el potente motor de reportes.</p>
+        <ul>
+            <li><strong>Configuración del Reporte:</strong>
+                <ol style="padding-left: 20px;">
+                    <li><strong>Período:</strong> Define el rango de fechas a analizar.</li>
+                    <li><strong>Filtros Avanzados:</strong> Acota los resultados por <strong>Tipo</strong> (ingresos/egresos), <strong>Categoría</strong>, <strong>Modalidad</strong>, <strong>Clientes</strong> o <strong>Proveedores</strong> específicos. Puedes seleccionar múltiples valores en cada filtro.</li>
+                    <li><strong>Vista Detallada vs. Resumida:</strong>
+                        <ul style="padding-left: 20px;">
+                            <li><strong>Detallado:</strong> Si no eliges un nivel de resumen, obtendrás un listado de cada movimiento individual que coincida con tus filtros.</li>
+                            <li><strong>Resumido:</strong> Agrupa tus datos hasta en tres niveles jerárquicos. Por ejemplo, puedes ver tus gastos <em>Por Mes</em> ➔ <em>Por Categoría</em> ➔ <em>Por Proveedor</em>.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </li>
+            <li><strong>Generación y Exportación:</strong>
+                <ul style="padding-left: 20px;">
+                    <li>Haz clic en <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-cogs"></i> Generar Reporte</button> para ver los resultados en pantalla.</li>
+                    <li>Usa el botón <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-download"></i> Exportar</button> para descargar tu informe en formato **PDF** o **Excel**.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <h2><i class="fa-solid fa-database icon text-opciones"></i>Ajustes y Mantenimiento</h2>
+    <div class="feature-box">
+        <h4><i class="fa-solid fa-shield-halved icon"></i>Mantén tu Información Segura</h4>
+        <p>Accede desde <span class="text-opciones"><i class="fa-solid fa-bars icon"></i><strong>Opciones</strong></span> ➔ <span class="text-opciones"><i class="fa-solid fa-database icon"></i><strong>Base de Datos</strong></span>.</p>
+        <ul>
+            <li><strong>Respaldos Locales (Backups):</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Configuración:</strong> Define una carpeta en tu PC para guardar las copias de seguridad. Puedes programar respaldos automáticos **al iniciar la app**, **diariamente** o solo los **días hábiles** a una hora específica.</li>
+                    <li><strong>Creación Manual:</strong> Crea un respaldo en cualquier momento con el botón <button style="border:none; padding: 5px 10px; background-color: #e9ecef; border-radius: 4px;"><i class="fa-solid fa-save"></i> Crear Respaldo Ahora</button>.</li>
+                    <li><strong>Restauración:</strong> Restaura tu base de datos a un estado anterior seleccionando un respaldo de la lista o subiendo un archivo <code>.sqlite</code> desde tu equipo. <strong>Esta acción reemplazará todos los datos actuales</strong>.</li>
+                </ul>
+            </li>
+            <li><strong>Zona de Alto Riesgo:</strong>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Resetear Aplicación:</strong> Esta función <strong>elimina permanentemente toda tu información</strong> y restaura la aplicación a su estado inicial, incluyendo el PIN por defecto (<code>1234</code>). <strong>Requiere tu PIN actual como confirmación y es irreversible</strong>.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<%- include('layout/_footer') %>
+
+
 ----- C:\Users\Javier\Desktop\finanzas-app\views\pago.ejs -----
 <%- include('layout/_header', { title: title }) %>
 
@@ -9987,7 +10294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <div>
                             <% if (!movimiento) { %>                               
-                                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restablecer-pago" <%= !isLicensed ? 'disabled' : '' %>><i class="fa-solid fa-undo me-1"></i>Limpiar formulario</button>
+                                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restablecer-pago" <%= !isLicensed ? 'disabled' : '' %>><i class="fa-solid fa-undo me-1"></i>Restablecer</button>
                             <% } %>
                         </div>
                         <% if (!movimiento && isLicensed) { %>
@@ -10036,9 +10343,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <% if (proveedorSeleccionado) { %>
     <div class="card" style="width: fit-content;">
         <div class="card-body">
-            <h6 class="card-title text-muted mb-3" style="font-size: 1.10rem;">Historial reciente de
-                 <span class="nombre-proveedor-destacado text-egreso fw-bold"><%= proveedorSeleccionado.nombre %></span>
-            </h6>
+            <h6 class="card-title text-muted mb-4" style="font-size: 1.10rem;"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--egresos-color);"></i>Historial reciente del Proveedor</h6>
 
             <% if (movimientos && movimientos.length > 0) { %>
                 <div class="table-responsive">
@@ -10089,8 +10394,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <% } %>
 
             <div class="text-end mt-1">
-                <a href="/registro?busqueda=<%= proveedorSeleccionado.id %>" class="btn btn-link" title="Ver todos los movimientos de este proveedor en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver todo el historial
+                <a href="/registro?busqueda=<%= proveedorSeleccionado.id %>" class="btn btn-link" title="Se visualizarán todos los movimientos de este proveedor en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver más...
                 </a>
             </div>
         </div>
@@ -10104,9 +10409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <% if (clienteSeleccionado) { %>
     <div class="card" style="width: fit-content;">
         <div class="card-body">
-            <h6 class="card-title text-muted mb-3" style="font-size: 1.10rem;">Historial reciente de
-                 <span class="nombre-cliente-destacado text-ingreso fw-bold"><%= clienteSeleccionado.nombre %></span>
-            </h6>
+            <h6 class="card-title text-muted mb-4" style="font-size: 1.10rem;"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--ingresos-color);"></i>Historial reciente del Cliente</h6>
 
             <% if (movimientos && movimientos.length > 0) { %>
                 <div class="table-responsive">
@@ -10157,8 +10460,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <% } %>
 
             <div class="text-end mt-1">
-                <a href="/registro?busqueda=<%= clienteSeleccionado.id %>" class="btn btn-link" title="Ver todos los movimientos de este cliente en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver todo el historial
+                <a href="/registro?busqueda=<%= clienteSeleccionado.id %>" class="btn btn-link" title="Se visualizarán todos los movimientos de este cliente en el registro." data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Ver más...
                 </a>
             </div>
         </div>
@@ -10612,7 +10915,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th>Entidad</th>
                         <th>Categoría</th>
                         <th>Modalidad</th>
-                        <th class="text-center"><i class="fa-solid fa-comment"></i></th>
+                        <th></th>
                         <th class="text-end">Importe</th>
                         <th></th>
                     </tr>
@@ -10893,7 +11196,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="row mt-4 align-items-center">
                     <div class="col">
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="btn-generar-reporte">Generar Reporte</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="btn-generar-reporte">
+                                <i class="fa-solid fa-cogs me-2"></i>Generar Reporte
+                            </button>
                         </div>
                     </div>
                     <div class="col-auto">
@@ -11221,7 +11526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div>
                             <% if (!movimiento) { %>
                                 <button type="button" class="btn btn-link" id="btn-restablecer-formulario" data-bs-toggle="modal" data-bs-target="#modal-confirmar-restablecer" <%= !isLicensed ? 'disabled' : '' %>>
-                                    <i class="fa-solid fa-undo me-1"></i>Limpiar formulario
+                                    <i class="fa-solid fa-undo me-1"></i>Restablecer
                                 </button>
                             <% } %>
                         </div>

@@ -80,7 +80,7 @@ module.exports = function(requireLicense) {
             
             if (returnToRegistro === 'true') return res.json({ success: true, redirectTo: `/registro?${returnQuery}&update=success` });
             if (returnToReport === 'true') return res.json({ success: true, redirectTo: `/reportes/generar?${returnQuery}&update=success` });
-            res.json({ success: true, message: 'Egreso actualizado con éxito' });
+            res.json({ success: true, message: 'Movimiento actualizado con éxito' });
         } catch (err) {
             next(err);
         }
@@ -99,7 +99,7 @@ module.exports = function(requireLicense) {
             const sql = `INSERT INTO movimientos (fecha, monto, tipo, entidad_id, entidad_tipo, modalidad, categoria_id, descripcion) VALUES (?, ?, ?, ?, 'proveedor', ?, ?, ?)`;
             await Consultas.dbRunAsync(sql, [fecha, monto, tipo, proveedor_id, modalidad, categoria_id, comentarios]);
             
-            res.status(201).json({ success: true, message: 'Egreso guardado con éxito.' });
+            res.status(201).json({ success: true, message: 'Movimiento registrado con éxito.' });
         } catch (err) {
             next(err);
         }

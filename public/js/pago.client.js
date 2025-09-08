@@ -1,6 +1,13 @@
+//--- public\js\pago.client.js
+
 document.addEventListener('DOMContentLoaded', function () {
     const pagoPage = document.getElementById('form-cargar-pago');
     if (pagoPage) {
+
+        // Se inicializan todos los tooltips de Bootstrap en la página.
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
         // --- INYECCIÓN DE ESTILOS PARA LA BARRA DE DESPLAZAMIENTO ---
         const style = document.createElement('style');
         style.textContent = `.scrollable-results-pago { max-height: 300px; overflow-y: auto; }`;
@@ -916,11 +923,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         checkFormValidity();
-        const btnConfirmarRestablecerFinal = document.getElementById('btn-confirmar-restablecer-final-pago');
-        if (btnConfirmarRestablecerFinal) {
-            btnConfirmarRestablecerFinal.addEventListener('click', () => {
+        
+        const btnRestablecerFormulario = document.getElementById('btn-restablecer-formulario-pago');
+        if (btnRestablecerFormulario) {
+            btnRestablecerFormulario.addEventListener('click', (e) => {
+                e.preventDefault();
                 restablecerFormularioCompleto();
-                modalConfirmarRestablecer.hide();
             });
         }
     }

@@ -36,11 +36,20 @@
         <h5 class="offcanvas-title">Menú</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body d-flex flex-column">
-        <a href="/logout" class="submenu-link text-danger"><i class="fa-solid fa-sign-out-alt fa-fw"></i>Cerrar Sesión</a>
 
-        <div class="side-nav-info">
-            <div class="mt-auto text-center">
+    <div class="offcanvas-body d-flex flex-column p-3">
+                <a href="/settings/manual" class="submenu-link">
+            <i class="fa-solid fa-circle-question fa-fw"></i>
+            <span>Manual de Ayuda</span>
+        </a>
+                <div class="submenu-divider my-2"></div>
+        <a href="/logout" class="submenu-link text-danger">
+            <i class="fa-solid fa-sign-out-alt fa-fw"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+
+        <div class="side-nav-info mt-auto">
+            <div class="text-center">
                 <small>Usuario</small>
                 <span class="badge user-data-badge text-dark"><%= username %></span>
                 <small>CUIT</small>
@@ -170,4 +179,3 @@
 <%- typeof pageScripts !== 'undefined' ? pageScripts : '' %>
 </body>
 </html>
-
