@@ -761,7 +761,7 @@ body {
 }
 
 /* Pantallas medianas y grandes (Tablets y Escritorio) */
-@media (min-width: 850px) {
+@media (min-width: 916px) {
     .btn-scroll-top {
         bottom: 20px; /* Menos espacio en la parte inferior para la vista de escritorio */
     }

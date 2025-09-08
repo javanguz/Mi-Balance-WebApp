@@ -1,7 +1,10 @@
-<%#* views/layout/_footer.ejs %>
+<!--- views/layout/_footer.ejs -->
 
 </div> 
 
+<!-------------------------------->
+<!--- barra navegacion INFERIOR -->
+<!-------------------------------->
 <nav class="bottom-nav">
     <a href="/inicio" class="bottom-nav-link <%= (locals.active_link && active_link === 'inicio') ? 'active' : '' %>">
         <i class="fa-solid fa-chart-simple"></i>
@@ -25,25 +28,28 @@
     </a>
 </nav>
 
-
+<!-------------------------------------->
+<!--- menú hamburguesa barra superior -->
+<!-------------------------------------->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="main-menu" style="width: 280px;">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title">Menú</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
-        <div class="d-grid">
-            <a href="/logout" class="btn btn-outline-danger"><i class="fa-solid fa-sign-out-alt fa-fw me-2"></i>Cerrar Sesión</a>
-        </div>
-        <div class="mt-auto pt-3 text-center border-top">
-             <small class="text-muted d-block" style="font-size: 0.8rem;">Usuario</small>
-             <strong class="text-muted d-block" style="font-size: 0.9rem; word-wrap: break-word;"><%= username %></strong>
-             <hr class="my-2">
-             <small class="text-muted d-block" style="font-size: 0.8rem;">CUIT</small>
-             <strong class="text-muted" style="font-size: 0.9rem; word-wrap: break-word;"><%= cuit %></strong>
+        <a href="/logout" class="submenu-link text-danger"><i class="fa-solid fa-sign-out-alt fa-fw"></i>Cerrar Sesión</a>
+
+        <div class="side-nav-info">
+            <div class="mt-auto text-center">
+                <small>Usuario</small>
+                <span class="badge user-data-badge text-dark"><%= username %></span>
+                <small>CUIT</small>
+                <span class="badge user-data-badge text-dark"><%= cuit %></span>
+            </div>
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="modal-licencia" tabindex="-1" aria-labelledby="modalLicenciaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
