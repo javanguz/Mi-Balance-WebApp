@@ -1,5 +1,5 @@
 {
-  "name": "gestion-financiera-simple",
+  "name": "mi-balance",
   "version": "1.0.0",
   "description": "Una aplicación web simple para gestión financiera.",
   "main": "app.js",
@@ -15,7 +15,7 @@
     "sqlite",
     "bootstrap"
   ],
-  "author": "Tu Nombre",
+  "author": "javanguz",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
