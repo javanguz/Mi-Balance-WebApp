@@ -1,11 +1,18 @@
-//
-// ESTO SE UTILIZA PARA GUARDAR TODO EL CODIGO EN TXT -- SE EJECUTA DESDE LA CONSOLA: node exportarCodigo.js
+// ESTO SE UTILIZA PARA GUARDAR TODO EL CODIGO EN TXT
+// SE EJECUTA DESDE LA CONSOLA: node exportarCodigo.js
 //
 const fs = require('fs');
 const path = require('path');
 
-const output = fs.createWriteStream('todo_el_codigo.txt');
 const directorioRaiz = __dirname;
+const nombreDirectorioRaiz = path.basename(directorioRaiz);
+
+// Se crea el nombre del archivo de salida dinámicamente
+const nombreArchivoSalida = `z_${nombreDirectorioRaiz}_todo_el_codigo.txt`;
+const output = fs.createWriteStream(nombreArchivoSalida);
+
+// Se escribe el nombre del directorio raíz como cabecera en el archivo
+output.write(`// Directorio Raíz: ${nombreDirectorioRaiz}\n\n`);
 
 // Lista de carpetas a excluir
 const carpetasExcluidas = ['node_modules', '.git', 'dist', 'build'];
@@ -42,4 +49,5 @@ function recorrerDirectorio(dir) {
 }
 
 recorrerDirectorio(directorioRaiz);
-console.log('✅ Código exportado a todo_el_codigo.txt (excluyendo archivos y carpetas definidas)');
+// Se actualiza el mensaje de la consola para mostrar el nuevo nombre de archivo
+console.log(`✅ Código exportado a ${nombreArchivoSalida} (excluyendo archivos y carpetas definidas)`);
